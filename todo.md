@@ -23,7 +23,7 @@
   - Test wajib (unit): DAG linear, DAG dengan percabangan paralel (seperti contoh PRD §9.A Acceptance Criteria)
 
 ## FASE 2 — Core Engine & API (target: Hari 2)
-- [ ] **Task 2.1 — Auth Module (JWT + RBAC)**
+- [x] **Task 2.1 — Auth Module (JWT + RBAC)**
   - Referensi: PRD §10 (Auth endpoints), §16 (Security)
   - Output: `POST /auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout`; guard `TenantGuard`, decorator `@Roles()`
   - DoD: login mengembalikan access+refresh token valid; endpoint terproteksi menolak request tanpa token (`401`) dan role salah (`403`)
