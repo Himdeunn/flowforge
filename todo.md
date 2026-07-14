@@ -1,0 +1,120 @@
+# FlowForge Project Todo
+
+## FASE 1 — Fondasi (target: Hari 1)
+- [ ] **Task 1.1 — Setup Backend Skeleton**
+  - Referensi: PRD §5, §7
+  - Output: `apps/api` ter-inisialisasi NestJS, struktur folder module sesuai §7
+  - DoD: `npm run start:dev` di `apps/api` berjalan tanpa error, endpoint health-check (`GET /api/v1/health`) return `200`
+  - Test: -
+- [ ] **Task 1.2 — Skema Database & Migration Awal**
+  - Referensi: PRD §11
+  - Output: `prisma/schema.prisma` berisi seluruh model (`tenants`, `users`, `workflow_definitions`, `workflow_versions`, `workflow_runs`, `step_runs`) sesuai kolom & tipe di §11
+  - DoD: `npx prisma migrate dev` berhasil, tabel muncul di Postgres
+  - Test: -
+- [ ] **Task 1.3 — DAG Parser & Validator**
+  - Referensi: PRD §9.A
+  - Output: modul `apps/api/src/execution/dag-parser.ts` (atau setara) yang bisa: parse JSON DAG, deteksi cycle, deteksi node orphan/tipe tak dikenal
+  - DoD: fungsi melempar error spesifik untuk tiap kasus invalid, dan mengembalikan struktur graph valid untuk kasus valid
+  - Test wajib (unit, Jest): minimal 4 kasus — DAG valid, DAG dengan cycle, DAG dengan node orphan, DAG dengan tipe step tidak dikenal
+- [ ] **Task 1.4 — Topological Sort**
+  - Referensi: PRD §9.A
+  - Output: fungsi topological sort (Kahn's algorithm) yang mengembalikan "layer" eksekusi (array of array — step dalam layer sama = bisa paralel)
+  - DoD: untuk DAG contoh di PRD Appendix A, urutan layer sesuai ekspektasi manual
+  - Test wajib (unit): DAG linear, DAG dengan percabangan paralel (seperti contoh PRD §9.A Acceptance Criteria)
+
+## FASE 2 — Core Engine & API (target: Hari 2)
+- [ ] **Task 2.1 — Auth Module (JWT + RBAC)**
+  - Referensi: PRD §10 (Auth endpoints), §16 (Security)
+  - Output: `POST /auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout`; guard `TenantGuard`, decorator `@Roles()`
+  - DoD: login mengembalikan access+refresh token valid; endpoint terproteksi menolak request tanpa token (`401`) dan role salah (`403`)
+  - Test wajib (integration): register→login sukses, akses endpoint terproteksi dengan role salah ditolak
+- [ ] **Task 2.2 — Execution Engine (Executor + Retry + Timeout)**
+  - Referensi: PRD §9.A
+  - Output: modul executor yang mengonsumsi hasil topo-sort, menjalankan step per layer, menangani retry exponential backoff, dan global timeout
+  - DoD: workflow dengan step gagal-lalu-sukses (mock) berhasil retry sesuai `maxRetries`; workflow yang melebihi timeout ditandai `timed_out`
+  - Test wajib (unit): retry backoff formula, timeout enforcement (gunakan fake timers Jest, jangan `sleep` asli di test)
+- [ ] **Task 2.3 — Workflow CRUD + Versioning API**
+  - Referensi: PRD §10 (Workflows), §9.B
+  - Output: seluruh endpoint `/workflows/*` sesuai tabel §10, termasuk versioning dan rollback
+  - DoD: update workflow membuat row baru di `workflow_versions`, rollback mengubah `current_version_id`
+  - Test wajib (integration): create→update→cek versi bertambah→rollback→cek `current_version_id` berubah
+- [ ] **Task 2.4 — Trigger & Queue Integration (BullMQ)**
+  - Referensi: PRD §9.A, §9.B, §6 (arsitektur)
+  - Output: `POST /workflows/:id/trigger`, `POST /webhooks/:token/trigger`; job masuk ke BullMQ; proses `worker` terpisah mengonsumsi job dan memanggil execution engine
+  - DoD: trigger manual menghasilkan row `workflow_runs` berstatus `queued` lalu berubah `running`→`completed` tanpa intervensi manual
+  - Test wajib (integration): trigger via API, poll status run sampai `completed`
+- [ ] **Task 2.5 — Tenant Isolation Enforcement**
+  - Referensi: PRD §9.B, §16
+  - Output: Prisma middleware/global guard yang menyuntikkan filter `tenantId` otomatis
+  - DoD: **Test 2 tenant wajib lulus** — buat 2 tenant, masing-masing punya workflow, tenant A tidak bisa akses/list data tenant B lewat endpoint manapun
+  - Test wajib (integration): skenario 2-tenant di atas, eksplisit sebagai test case terpisah bernama jelas (mis. `tenant-isolation.spec.ts`)
+- [ ] **Task 2.6 — Rate Limiting & Pagination/Filtering**
+  - Referensi: PRD §9.B, §10
+  - Output: middleware rate limit berbasis Redis; query param `cursor`, `limit`, `status`, `createdAfter` di endpoint list
+  - DoD: request ke-101 dalam 1 menit dari tenant sama menerima `429`
+  - Test wajib (integration): rate limit terpicu setelah N request
+
+## FASE 3 — Real-Time & Frontend (target: Hari 3)
+- [ ] **Task 3.1 — WebSocket Gateway**
+  - Referensi: PRD §12
+  - Output: Socket.IO gateway sesuai kontrak event di §12 (room per run, event `run:started`, `step:status_changed`, `run:completed`, `run:error`)
+  - DoD: klien testing sederhana (script Node atau Postman) menerima event real-time saat run dipicu
+  - Test: integration test opsional — minimal manual verification terdokumentasi di `CHANGELOG-DECISIONS.md`
+- [ ] **Task 3.2 — Frontend Bootstrap & Auth Flow**
+  - Referensi: PRD §5, §7
+  - Output: `apps/web` ter-inisialisasi (Vite+React+TS+Tailwind), halaman login, penyimpanan token
+  - DoD: user bisa login dari UI dan mendapat token yang tersimpan
+  - Test: E2E dasar (Task 3.5) mencakup ini
+- [ ] **Task 3.3 — DAG Visualization (React Flow)**
+  - Referensi: PRD §9.C
+  - Output: komponen yang merender `definition_json` sebagai graph node/edge, warna node berubah sesuai `step:status_changed`
+  - DoD: buka halaman detail run, trigger workflow dari halaman lain di tab berbeda, warna node di dashboard berubah tanpa refresh manual
+  - Test: manual verification cukup
+- [ ] **Task 3.4 — Run History & Health Panel**
+  - Referensi: PRD §9.C
+  - Output: halaman list run + drill-down log; panel agregat 24 jam
+  - DoD: data yang ditampilkan cocok dengan data di database (verifikasi manual query vs UI)
+  - Test: -
+- [ ] **Task 3.5 — Docker & Docker Compose**
+  - Referensi: PRD §9.E, `02-INSTALL-GUIDE.md`
+  - Output: `Dockerfile` multi-stage untuk `apps/api` dan `apps/web`; `docker-compose.yml` dengan service `api`, `worker`, `web`, `postgres`, `mongodb`, `redis`
+  - DoD: dari **fresh clone** repo (test di folder kosong berbeda), `docker compose up` menghasilkan sistem berjalan penuh
+  - Test wajib: jalankan `docker compose up` dan verifikasi seluruh container `healthy`/`running`
+- [ ] **Task 3.6 — CI Pipeline**
+  - Referensi: PRD §9.E
+  - Output: `.github/workflows/ci.yml` — job `lint` → `test` → `build` → `docker-build`
+  - DoD: push ke branch feature memicu pipeline, seluruh job hijau
+  - Test: -
+
+## FASE 4 — AI, Testing, Dokumentasi (target: Hari 4)
+- [ ] **Task 4.1 — AI Natural Language Workflow Builder**
+  - Referensi: PRD §13
+  - Output: `POST /ai/generate-workflow`, integrasi Gemini API, validasi schema + retry korektif
+  - DoD: input deskripsi natural bahasa Indonesia/Inggris sederhana menghasilkan DAG JSON valid; input yang menghasilkan output cacat 2x berturut-turut mengembalikan error `422`
+  - Test wajib (integration, mock LLM response): kasus sukses, kasus LLM return JSON invalid → retry → sukses, kasus retry tetap gagal → `422`
+- [ ] **Task 4.2 — E2E Test Penuh**
+  - Referensi: PRD §9.F, §15
+  - Output: 1 skenario E2E — create workflow → trigger → subscribe WS/poll → assert `completed`
+  - DoD: test berjalan hijau di CI
+  - Test: ini sendiri adalah deliverable test
+- [ ] **Task 4.3 — REVIEW.md**
+  - Referensi: PRD §9.F
+  - Output: review kode cacat yang diberikan terpisah oleh evaluator
+  - DoD: setiap isu diberi: kutipan baris kode, penjelasan masalah, saran perbaikan konkret
+  - Test: -
+- [ ] **Task 4.4 — README.md**
+  - Referensi: PRD §9.F
+  - Output: setup instructions, architecture overview, bagian trade-off & rencana perbaikan
+  - DoD: seseorang yang belum pernah lihat proyek bisa clone→setup→jalankan hanya dengan membaca README
+- [ ] **Task 4.5 — Infra Design Doc**
+  - Referensi: PRD §9.E
+  - Output: `docs/infra-design.md` — diagram arsitektur AWS + penjelasan pilihan
+  - DoD: setiap komponen di diagram punya 1-2 kalimat justifikasi
+- [ ] **Task 4.6 — Swagger/OpenAPI Docs**
+  - Referensi: PRD §5, §20
+  - Output: decorator Swagger di seluruh controller, endpoint `/api/docs` menampilkan dokumentasi interaktif
+  - DoD: seluruh endpoint di PRD §10 muncul di Swagger UI
+- [ ] **Task 4.7 — Final Review & Submission Checklist**
+  - Referensi: PRD §20 (Definition of Done)
+  - Output: jalankan seluruh checklist PRD §20 satu per satu
+  - DoD: seluruh item tercentang
