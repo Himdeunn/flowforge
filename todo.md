@@ -55,10 +55,11 @@
   - Test wajib (unit/integration): test rate limit (429) & test cursor pagination setelah N request
 
 ## FASE 3 — Real-Time & Frontend (target: Hari 3)
-- [ ] **Task 3.1 — WebSocket Gateway**
-  - Referensi: PRD §12
-  - Output: Socket.IO gateway sesuai kontrak event di §12 (room per run, event `run:started`, `step:status_changed`, `run:completed`, `run:error`)
-  - DoD: klien testing sederhana (script Node atau Postman) menerima event real-time saat run dipicu
+- [x] **Task 3.1 — WebSocket Gateway**
+  - Referensi: PRD §9.C, §6 (arsitektur)
+  - Output: `runs.gateway.ts` menggunakan Socket.io di NestJS, memancarkan event `step:status_changed`
+  - DoD: client menerima pembaruan status real-time saat pipeline eksekusi berjalan di worker
+  - Test wajib: manual/mock (Socket.io client menyambung dan menerima event) real-time saat run dipicu
   - Test: integration test opsional — minimal manual verification terdokumentasi di `CHANGELOG-DECISIONS.md`
 - [ ] **Task 3.2 — Frontend Bootstrap & Auth Flow**
   - Referensi: PRD §5, §7

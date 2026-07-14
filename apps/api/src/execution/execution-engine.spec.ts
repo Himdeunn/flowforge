@@ -19,6 +19,8 @@ describe('ExecutionEngine', () => {
       updateMany: jest.fn(),
     },
     stepRun: {
+      findFirst: jest.fn().mockResolvedValue({ id: 'step-run-id' }),
+      create: jest.fn().mockResolvedValue({ id: 'step-run-id' }),
       upsert: jest.fn(),
       update: jest.fn(),
       updateMany: jest.fn(),
@@ -152,7 +154,7 @@ describe('ExecutionEngine', () => {
     // Assert
     expect(mockStepExecutor.execute).toHaveBeenCalledTimes(2);
     expect(mockPrisma.stepRun.update).toHaveBeenCalledWith({
-      where: { runId_stepKey: { runId, stepKey: 'step1' } },
+      where: { id: 'step-run-id' },
       data: {
         status: 'running',
         attempt: 1,
@@ -160,7 +162,7 @@ describe('ExecutionEngine', () => {
       },
     });
     expect(mockPrisma.stepRun.update).toHaveBeenCalledWith({
-      where: { runId_stepKey: { runId, stepKey: 'step1' } },
+      where: { id: 'step-run-id' },
       data: {
         status: 'running',
         attempt: 2,
@@ -168,7 +170,7 @@ describe('ExecutionEngine', () => {
       },
     });
     expect(mockPrisma.stepRun.update).toHaveBeenLastCalledWith({
-      where: { runId_stepKey: { runId, stepKey: 'step1' } },
+      where: { id: 'step-run-id' },
       data: {
         status: 'success',
         completedAt: expect.any(Date),
@@ -215,7 +217,7 @@ describe('ExecutionEngine', () => {
     // Assert
     expect(mockStepExecutor.execute).toHaveBeenCalledTimes(2); // attempt 1 + retry 1
     expect(mockPrisma.stepRun.update).toHaveBeenLastCalledWith({
-      where: { runId_stepKey: { runId, stepKey: 'step1' } },
+      where: { id: 'step-run-id' },
       data: {
         status: 'failed',
         completedAt: expect.any(Date),
