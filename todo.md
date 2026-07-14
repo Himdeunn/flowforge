@@ -6,7 +6,7 @@
   - Output: `apps/api` ter-inisialisasi NestJS, struktur folder module sesuai §7
   - DoD: `npm run start:dev` di `apps/api` berjalan tanpa error, endpoint health-check (`GET /api/v1/health`) return `200`
   - Test: -
-- [ ] **Task 1.2 — Skema Database & Migration Awal**
+- [x] **Task 1.2 — Skema Database & Migration Awal**
   - Referensi: PRD §11
   - Output: `prisma/schema.prisma` berisi seluruh model (`tenants`, `users`, `workflow_definitions`, `workflow_versions`, `workflow_runs`, `step_runs`) sesuai kolom & tipe di §11
   - DoD: `npx prisma migrate dev` berhasil, tabel muncul di Postgres
