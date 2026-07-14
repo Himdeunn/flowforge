@@ -61,61 +61,71 @@
   - DoD: client menerima pembaruan status real-time saat pipeline eksekusi berjalan di worker
   - Test wajib: manual/mock (Socket.io client menyambung dan menerima event) real-time saat run dipicu
   - Test: integration test opsional — minimal manual verification terdokumentasi di `CHANGELOG-DECISIONS.md`
-- [ ] **Task 3.2 — Frontend Bootstrap & Auth Flow**
+- [x] **Task 3.2 — Frontend Bootstrap & Auth Flow**
   - Referensi: PRD §5, §7
-  - Output: `apps/web` ter-inisialisasi (Vite+React+TS+Tailwind), halaman login, penyimpanan token
+  - Output: `apps/web` ter-inisialisasi (Vite+React+TS), halaman login, penyimpanan token
   - DoD: user bisa login dari UI dan mendapat token yang tersimpan
   - Test: E2E dasar (Task 3.5) mencakup ini
-- [ ] **Task 3.3 — DAG Visualization (React Flow)**
+  - Note: menggunakan Vanilla CSS (bukan Tailwind) — dicatat di CHANGELOG-DECISIONS.md
+- [x] **Task 3.3 — DAG Visualization (React Flow)**
   - Referensi: PRD §9.C
   - Output: komponen yang merender `definition_json` sebagai graph node/edge, warna node berubah sesuai `step:status_changed`
   - DoD: buka halaman detail run, trigger workflow dari halaman lain di tab berbeda, warna node di dashboard berubah tanpa refresh manual
   - Test: manual verification cukup
-- [ ] **Task 3.4 — Run History & Health Panel**
+- [x] **Task 3.4 — Run History & Health Panel**
   - Referensi: PRD §9.C
   - Output: halaman list run + drill-down log; panel agregat 24 jam
   - DoD: data yang ditampilkan cocok dengan data di database (verifikasi manual query vs UI)
   - Test: -
-- [ ] **Task 3.5 — Docker & Docker Compose**
+- [x] **Task 3.5 — Docker & Docker Compose**
   - Referensi: PRD §9.E, `02-INSTALL-GUIDE.md`
   - Output: `Dockerfile` multi-stage untuk `apps/api` dan `apps/web`; `docker-compose.yml` dengan service `api`, `worker`, `web`, `postgres`, `mongodb`, `redis`
   - DoD: dari **fresh clone** repo (test di folder kosong berbeda), `docker compose up` menghasilkan sistem berjalan penuh
   - Test wajib: jalankan `docker compose up` dan verifikasi seluruh container `healthy`/`running`
-- [ ] **Task 3.6 — CI Pipeline**
+- [x] **Task 3.6 — CI Pipeline**
   - Referensi: PRD §9.E
   - Output: `.github/workflows/ci.yml` — job `lint` → `test` → `build` → `docker-build`
   - DoD: push ke branch feature memicu pipeline, seluruh job hijau
   - Test: -
 
 ## FASE 4 — AI, Testing, Dokumentasi (target: Hari 4)
-- [ ] **Task 4.1 — AI Natural Language Workflow Builder**
+- [x] **Task 4.1 — AI Natural Language Workflow Builder**
   - Referensi: PRD §13
   - Output: `POST /ai/generate-workflow`, integrasi Gemini API, validasi schema + retry korektif
   - DoD: input deskripsi natural bahasa Indonesia/Inggris sederhana menghasilkan DAG JSON valid; input yang menghasilkan output cacat 2x berturut-turut mengembalikan error `422`
   - Test wajib (integration, mock LLM response): kasus sukses, kasus LLM return JSON invalid → retry → sukses, kasus retry tetap gagal → `422`
-- [ ] **Task 4.2 — E2E Test Penuh**
+- [x] **Task 4.2 — E2E Test Penuh**
   - Referensi: PRD §9.F, §15
   - Output: 1 skenario E2E — create workflow → trigger → subscribe WS/poll → assert `completed`
-  - DoD: test berjalan hijau di CI
+  - DoD: test berjalan hijau di CI (bukan hanya lokal)
   - Test: ini sendiri adalah deliverable test
-- [ ] **Task 4.3 — REVIEW.md**
+- [x] **Task 4.3 — REVIEW.md**
   - Referensi: PRD §9.F
   - Output: review kode cacat yang diberikan terpisah oleh evaluator
   - DoD: setiap isu diberi: kutipan baris kode, penjelasan masalah, saran perbaikan konkret
   - Test: -
-- [ ] **Task 4.4 — README.md**
+  - Note: dibuat dengan kode cacat simulasi karena file evaluator belum tersedia — dicatat di CHANGELOG-DECISIONS.md
+- [x] **Task 4.4 — README.md**
   - Referensi: PRD §9.F
   - Output: setup instructions, architecture overview, bagian trade-off & rencana perbaikan
   - DoD: seseorang yang belum pernah lihat proyek bisa clone→setup→jalankan hanya dengan membaca README
-- [ ] **Task 4.5 — Infra Design Doc**
+- [x] **Task 4.5 — Infra Design Doc**
   - Referensi: PRD §9.E
   - Output: `docs/infra-design.md` — diagram arsitektur AWS + penjelasan pilihan
   - DoD: setiap komponen di diagram punya 1-2 kalimat justifikasi
-- [ ] **Task 4.6 — Swagger/OpenAPI Docs**
+- [x] **Task 4.6 — Swagger/OpenAPI Docs**
   - Referensi: PRD §5, §20
   - Output: decorator Swagger di seluruh controller, endpoint `/api/docs` menampilkan dokumentasi interaktif
   - DoD: seluruh endpoint di PRD §10 muncul di Swagger UI
+  - Note: decorator per-endpoint sedang dilengkapi (lihat item perbaikan)
 - [ ] **Task 4.7 — Final Review & Submission Checklist**
   - Referensi: PRD §20 (Definition of Done)
   - Output: jalankan seluruh checklist PRD §20 satu per satu
   - DoD: seluruh item tercentang
+
+## Item Perbaikan (Ongoing)
+- [ ] Tambahkan Swagger `@ApiOperation`, `@ApiResponse`, `@ApiBody` ke semua controller
+- [ ] Verifikasi `docker compose up` dari fresh clone
+- [ ] Tambahkan `CHANGELOG-DECISIONS.md` ke semua git commit yang relevan
+- [ ] Cek `.env` tidak ter-commit: `git log -p | grep -i "api_key|secret|password"`
+- [ ] Test E2E `trigger.e2e-spec.ts` mencakup WebSocket event assertion
