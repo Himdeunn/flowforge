@@ -1,7 +1,7 @@
 # FlowForge Project Todo
 
 ## FASE 1 — Fondasi (target: Hari 1)
-- [ ] **Task 1.1 — Setup Backend Skeleton**
+- [x] **Task 1.1 — Setup Backend Skeleton**
   - Referensi: PRD §5, §7
   - Output: `apps/api` ter-inisialisasi NestJS, struktur folder module sesuai §7
   - DoD: `npm run start:dev` di `apps/api` berjalan tanpa error, endpoint health-check (`GET /api/v1/health`) return `200`
