@@ -143,7 +143,7 @@ export class WorkflowsService {
           data: {
             workflowId: id,
             versionNumber: nextVersionNumber,
-            definitionJson: dto.definitionJson,
+            definitionJson: dto.definitionJson as any,
             createdBy: userId,
           },
         });

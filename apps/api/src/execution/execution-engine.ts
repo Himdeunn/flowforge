@@ -6,6 +6,8 @@ import { RunsGateway } from '../websocket/runs.gateway';
 import { parseAndValidateDag } from './dag-parser';
 import { getExecutionLayers } from './topological-sort';
 
+type StepStatus = 'pending' | 'running' | 'success' | 'failed' | 'skipped' | 'timed_out';
+
 @Injectable()
 export class ExecutionEngine {
   private readonly logger = new Logger(ExecutionEngine.name);

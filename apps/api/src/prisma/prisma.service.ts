@@ -22,7 +22,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         if (
           typeof originVal === 'object' &&
           originVal !== null &&
-          typeof originVal.findMany === 'function'
+          typeof (originVal as any).findMany === 'function'
         ) {
           return new Proxy(originVal, {
             get(modelTarget, modelProp) {

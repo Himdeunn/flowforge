@@ -12,6 +12,7 @@ import { ExecutionModule } from './execution/execution.module';
 import { WorkflowsModule } from './workflows/workflows.module';
 import { QueueModule } from './queue/queue.module';
 import { RunsModule } from './runs/runs.module';
+import { AiModule } from './ai/ai.module';
 import { APP_GUARD } from '@nestjs/core';
 import { RateLimiterGuard } from './common/guards/rate-limiter.guard';
 
@@ -33,6 +34,7 @@ import { RateLimiterGuard } from './common/guards/rate-limiter.guard';
     WorkflowsModule,
     QueueModule,
     RunsModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [

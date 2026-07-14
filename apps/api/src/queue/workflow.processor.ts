@@ -1,14 +1,25 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Worker, Job } from 'bullmq';
-import { Redis } from 'ioredis';
 import { ExecutionEngine } from '../execution/execution-engine';
+
+function parseRedisUrl(url: string): { host: string; port: number; password?: string } {
+  try {
+    const parsed = new URL(url);
+    return {
+      host: parsed.hostname || '127.0.0.1',
+      port: parseInt(parsed.port, 10) || 6379,
+      ...(parsed.password ? { password: parsed.password } : {}),
+    };
+  } catch {
+    return { host: '127.0.0.1', port: 6379 };
+  }
+}
 
 @Injectable()
 export class WorkflowProcessor implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(WorkflowProcessor.name);
   private worker: Worker;
-  private redisConnection: Redis;
 
   constructor(
     private readonly configService: ConfigService,
@@ -25,9 +36,7 @@ export class WorkflowProcessor implements OnModuleInit, OnModuleDestroy {
     }
 
     const redisUrl = this.configService.get<string>('REDIS_URL') || 'redis://localhost:6379';
-    this.redisConnection = new Redis(redisUrl, {
-      maxRetriesPerRequest: null,
-    });
+    const connection = parseRedisUrl(redisUrl);
 
     this.worker = new Worker(
       'workflow-exec',
@@ -43,7 +52,10 @@ export class WorkflowProcessor implements OnModuleInit, OnModuleDestroy {
         }
       },
       {
-        connection: this.redisConnection,
+        connection: {
+          ...connection,
+          maxRetriesPerRequest: null,
+        },
         concurrency: 5, // Process up to 5 runs in parallel
       },
     );
@@ -62,9 +74,6 @@ export class WorkflowProcessor implements OnModuleInit, OnModuleDestroy {
   async onModuleDestroy() {
     if (this.worker) {
       await this.worker.close();
-    }
-    if (this.redisConnection) {
-      this.redisConnection.disconnect();
     }
   }
 }

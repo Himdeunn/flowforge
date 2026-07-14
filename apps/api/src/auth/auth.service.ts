@@ -117,14 +117,14 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload, {
       secret: this.accessSecret,
-      expiresIn: this.accessExpiry,
+      expiresIn: this.accessExpiry as any,
     });
 
     const refreshToken = this.jwtService.sign(
       { sub: user.id },
       {
         secret: this.refreshSecret,
-        expiresIn: this.refreshExpiry,
+        expiresIn: this.refreshExpiry as any,
       },
     );
 
@@ -178,7 +178,7 @@ export class AuthService {
 
       const accessToken = this.jwtService.sign(newPayload, {
         secret: this.accessSecret,
-        expiresIn: this.accessExpiry,
+        expiresIn: this.accessExpiry as any,
       });
 
       return { accessToken };
