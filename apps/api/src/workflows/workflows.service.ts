@@ -79,7 +79,7 @@ export class WorkflowsService {
         currentVersion: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        id: 'asc',
       },
       take: limit,
     };

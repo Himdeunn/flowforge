@@ -12,6 +12,8 @@ import { ExecutionModule } from './execution/execution.module';
 import { WorkflowsModule } from './workflows/workflows.module';
 import { QueueModule } from './queue/queue.module';
 import { RunsModule } from './runs/runs.module';
+import { APP_GUARD } from '@nestjs/core';
+import { RateLimiterGuard } from './common/guards/rate-limiter.guard';
 
 @Module({
   imports: [
@@ -33,7 +35,13 @@ import { RunsModule } from './runs/runs.module';
     RunsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: RateLimiterGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

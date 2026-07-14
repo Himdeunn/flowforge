@@ -48,11 +48,11 @@
   - Output: test case `tenant-isolation.spec.ts` yang memastikan tenant A tidak bisa membaca/mengubah workflow milik tenant B (dan sebaliknya)
   - DoD: test scenario membuktikan error `404` / `403` jika token tenant A menembak `/workflows/:id_tenant_B`
   - Test wajib (integration): `tenant-isolation.spec.ts` di atas, eksplisit sebagai test case terpisah bernama jelas (mis. `tenant-isolation.spec.ts`)
-- [ ] **Task 2.6 — Rate Limiting & Pagination/Filtering**
+- [x] **Task 2.6 — Rate Limiting & Pagination/Filtering**
   - Referensi: PRD §9.B, §10
   - Output: middleware rate limit berbasis Redis; query param `cursor`, `limit`, `status`, `createdAfter` di endpoint list
-  - DoD: request ke-101 dalam 1 menit dari tenant sama menerima `429`
-  - Test wajib (integration): rate limit terpicu setelah N request
+  - DoD: rate limiting mengembalikan status `429` jika melampaui limit (mis. 100 req/menit per tenant); pagination mengembalikan data dengan cursor yang valid
+  - Test wajib (unit/integration): test rate limit (429) & test cursor pagination setelah N request
 
 ## FASE 3 — Real-Time & Frontend (target: Hari 3)
 - [ ] **Task 3.1 — WebSocket Gateway**

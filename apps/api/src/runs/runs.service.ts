@@ -50,7 +50,7 @@ export class RunsService {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        id: 'asc',
       },
       take: limit,
     };
