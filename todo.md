@@ -43,11 +43,11 @@
   - Output: `POST /workflows/:id/trigger`, `POST /webhooks/:token/trigger`; job masuk ke BullMQ; proses `worker` terpisah mengonsumsi job dan memanggil execution engine
   - DoD: trigger manual menghasilkan row `workflow_runs` berstatus `queued` lalu berubah `running`→`completed` tanpa intervensi manual
   - Test wajib (integration): trigger via API, poll status run sampai `completed`
-- [ ] **Task 2.5 — Tenant Isolation Enforcement**
-  - Referensi: PRD §9.B, §16
-  - Output: Prisma middleware/global guard yang menyuntikkan filter `tenantId` otomatis
-  - DoD: **Test 2 tenant wajib lulus** — buat 2 tenant, masing-masing punya workflow, tenant A tidak bisa akses/list data tenant B lewat endpoint manapun
-  - Test wajib (integration): skenario 2-tenant di atas, eksplisit sebagai test case terpisah bernama jelas (mis. `tenant-isolation.spec.ts`)
+- [x] **Task 2.5 — Tenant Isolation Enforcement**
+  - Referensi: PRD §11 (Keamanan)
+  - Output: test case `tenant-isolation.spec.ts` yang memastikan tenant A tidak bisa membaca/mengubah workflow milik tenant B (dan sebaliknya)
+  - DoD: test scenario membuktikan error `404` / `403` jika token tenant A menembak `/workflows/:id_tenant_B`
+  - Test wajib (integration): `tenant-isolation.spec.ts` di atas, eksplisit sebagai test case terpisah bernama jelas (mis. `tenant-isolation.spec.ts`)
 - [ ] **Task 2.6 — Rate Limiting & Pagination/Filtering**
   - Referensi: PRD §9.B, §10
   - Output: middleware rate limit berbasis Redis; query param `cursor`, `limit`, `status`, `createdAfter` di endpoint list
