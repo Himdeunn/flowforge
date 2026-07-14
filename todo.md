@@ -11,7 +11,7 @@
   - Output: `prisma/schema.prisma` berisi seluruh model (`tenants`, `users`, `workflow_definitions`, `workflow_versions`, `workflow_runs`, `step_runs`) sesuai kolom & tipe di §11
   - DoD: `npx prisma migrate dev` berhasil, tabel muncul di Postgres
   - Test: -
-- [ ] **Task 1.3 — DAG Parser & Validator**
+- [x] **Task 1.3 — DAG Parser & Validator**
   - Referensi: PRD §9.A
   - Output: modul `apps/api/src/execution/dag-parser.ts` (atau setara) yang bisa: parse JSON DAG, deteksi cycle, deteksi node orphan/tipe tak dikenal
   - DoD: fungsi melempar error spesifik untuk tiap kasus invalid, dan mengembalikan struktur graph valid untuk kasus valid
