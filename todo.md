@@ -16,7 +16,7 @@
   - Output: modul `apps/api/src/execution/dag-parser.ts` (atau setara) yang bisa: parse JSON DAG, deteksi cycle, deteksi node orphan/tipe tak dikenal
   - DoD: fungsi melempar error spesifik untuk tiap kasus invalid, dan mengembalikan struktur graph valid untuk kasus valid
   - Test wajib (unit, Jest): minimal 4 kasus — DAG valid, DAG dengan cycle, DAG dengan node orphan, DAG dengan tipe step tidak dikenal
-- [ ] **Task 1.4 — Topological Sort**
+- [x] **Task 1.4 — Topological Sort**
   - Referensi: PRD §9.A
   - Output: fungsi topological sort (Kahn's algorithm) yang mengembalikan "layer" eksekusi (array of array — step dalam layer sama = bisa paralel)
   - DoD: untuk DAG contoh di PRD Appendix A, urutan layer sesuai ekspektasi manual
