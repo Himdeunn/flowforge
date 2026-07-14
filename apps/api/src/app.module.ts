@@ -9,6 +9,7 @@ import { TenantMiddleware } from './auth/middleware/tenant.middleware';
 import { AuthModule } from './auth/auth.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { ExecutionModule } from './execution/execution.module';
+import { WorkflowsModule } from './workflows/workflows.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ExecutionModule } from './execution/execution.module';
     AuthModule,
     WebSocketModule,
     ExecutionModule,
+    WorkflowsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

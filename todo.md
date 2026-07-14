@@ -33,7 +33,7 @@
   - Output: Engine/Service penanggung jawab eksekusi step, support retry exponential backoff (`delay = baseDelayMs * 2^attempt`) dan global timeout (15 menit untuk satu run)
   - DoD: Unit test mensimulasikan step sukses, step gagal lalu sukses setelah retry, step gagal total, dan step yang terkena global timeout (run dibatalkan, status `failed`)
   - Test wajib (unit): `execution-engine.spec.ts` dengan mock Step Executor (retry backoff formula, timeout enforcement menggunakan fake timers Jest)
-- [ ] **Task 2.3 — Workflow CRUD + Versioning API**
+- [x] **Task 2.3 — Workflow CRUD + Versioning API**
   - Referensi: PRD §10 (Workflows), §9.B
   - Output: seluruh endpoint `/workflows/*` sesuai tabel §10, termasuk versioning dan rollback
   - DoD: update workflow membuat row baru di `workflow_versions`, rollback mengubah `current_version_id`
