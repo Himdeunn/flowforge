@@ -88,4 +88,12 @@ export class WorkflowsController {
   ) {
     return this.workflowsService.rollback(id, versionId, user.id);
   }
+
+  @Post(':id/trigger')
+  @Roles('admin', 'editor')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Trigger a workflow run manually' })
+  async trigger(@Param('id', new ParseUUIDPipe()) id: string, @ReqUser() user: any) {
+    return this.workflowsService.triggerManual(id, user.id);
+  }
 }

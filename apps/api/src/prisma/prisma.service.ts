@@ -45,9 +45,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
                     ];
 
                     if (modelsWithTenant.includes(modelName)) {
-                      // Inject tenantId filter
-                      queryArgs.where = queryArgs.where || {};
-                      queryArgs.where.tenantId = tenantId;
+                      // Inject tenantId filter on methods that accept where
+                      if (modelProp !== 'create' && modelProp !== 'createMany') {
+                        queryArgs.where = queryArgs.where || {};
+                        queryArgs.where.tenantId = tenantId;
+                      }
 
                       // Inject tenantId on create
                       if (modelProp === 'create') {

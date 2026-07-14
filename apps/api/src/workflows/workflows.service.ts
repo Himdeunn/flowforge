@@ -3,11 +3,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateWorkflowDto } from './dto/create-workflow.dto';
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
 import { parseAndValidateDag } from '../execution/dag-parser';
+import { QueueService } from '../queue/queue.service';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class WorkflowsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly queueService: QueueService,
+  ) {}
 
   async create(dto: CreateWorkflowDto, userId: string) {
     // 1. Validate DAG
@@ -220,5 +224,67 @@ export class WorkflowsService {
         currentVersion: true,
       },
     });
+  }
+
+  async triggerManual(id: string, userId: string) {
+    const workflow = await this.findOne(id);
+    if (!workflow.currentVersionId) {
+      throw new BadRequestException('Workflow has no active version to run.');
+    }
+
+    const tenantId = PrismaService.tenantStorage.getStore();
+    if (!tenantId) {
+      throw new BadRequestException('Tenant context is missing');
+    }
+
+    // Create the run
+    const run = await this.prisma.workflowRun.create({
+      data: {
+        tenantId,
+        workflowId: id,
+        versionId: workflow.currentVersionId,
+        triggerType: 'manual',
+        status: 'queued',
+      },
+    });
+
+    // Queue the execution job
+    await this.queueService.addWorkflowJob(run.id, tenantId);
+
+    return run;
+  }
+
+  async triggerWebhook(webhookToken: string) {
+    // Find workflow globally (webhook trigger is public, bypassing tenant scope)
+    const workflow = await this.prisma.workflowDefinition.findFirst({
+      where: {
+        webhookToken,
+        isActive: true,
+      },
+    });
+
+    if (!workflow) {
+      throw new NotFoundException('Invalid webhook token.');
+    }
+
+    if (!workflow.currentVersionId) {
+      throw new BadRequestException('Workflow has no active version to run.');
+    }
+
+    // Create the run under the workflow's tenant
+    const run = await this.prisma.workflowRun.create({
+      data: {
+        tenantId: workflow.tenantId,
+        workflowId: workflow.id,
+        versionId: workflow.currentVersionId,
+        triggerType: 'webhook',
+        status: 'queued',
+      },
+    });
+
+    // Queue the execution job
+    await this.queueService.addWorkflowJob(run.id, workflow.tenantId);
+
+    return run;
   }
 }

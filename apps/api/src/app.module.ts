@@ -10,6 +10,8 @@ import { AuthModule } from './auth/auth.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { ExecutionModule } from './execution/execution.module';
 import { WorkflowsModule } from './workflows/workflows.module';
+import { QueueModule } from './queue/queue.module';
+import { RunsModule } from './runs/runs.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { WorkflowsModule } from './workflows/workflows.module';
     WebSocketModule,
     ExecutionModule,
     WorkflowsModule,
+    QueueModule,
+    RunsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

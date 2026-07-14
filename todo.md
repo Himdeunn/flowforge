@@ -38,7 +38,7 @@
   - Output: seluruh endpoint `/workflows/*` sesuai tabel §10, termasuk versioning dan rollback
   - DoD: update workflow membuat row baru di `workflow_versions`, rollback mengubah `current_version_id`
   - Test wajib (integration): create→update→cek versi bertambah→rollback→cek `current_version_id` berubah
-- [ ] **Task 2.4 — Trigger & Queue Integration (BullMQ)**
+- [x] **Task 2.4 — Trigger & Queue Integration (BullMQ)**
   - Referensi: PRD §9.A, §9.B, §6 (arsitektur)
   - Output: `POST /workflows/:id/trigger`, `POST /webhooks/:token/trigger`; job masuk ke BullMQ; proses `worker` terpisah mengonsumsi job dan memanggil execution engine
   - DoD: trigger manual menghasilkan row `workflow_runs` berstatus `queued` lalu berubah `running`→`completed` tanpa intervensi manual

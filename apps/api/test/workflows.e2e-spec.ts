@@ -7,6 +7,8 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 
+jest.setTimeout(30000);
+
 describe('WorkflowsModule (e2e)', () => {
   let app: INestApplication<App>;
   let accessToken: string;

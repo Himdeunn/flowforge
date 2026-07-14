@@ -95,24 +95,27 @@ export class ExecutionEngine {
 
     // Initialize all step runs in Postgres as pending
     for (const node of parsedDag.nodes) {
-      await this.prisma.stepRun.upsert({
-        where: {
-          runId_stepKey: {
+      const stepRun = await this.prisma.stepRun.findFirst({
+        where: { runId, stepKey: node.id },
+      });
+      if (stepRun) {
+        await this.prisma.stepRun.update({
+          where: { id: stepRun.id },
+          data: {
+            status: 'pending',
+            attempt: 0,
+          },
+        });
+      } else {
+        await this.prisma.stepRun.create({
+          data: {
             runId,
             stepKey: node.id,
+            status: 'pending',
+            attempt: 0,
           },
-        },
-        create: {
-          runId,
-          stepKey: node.id,
-          status: 'pending',
-          attempt: 0,
-        },
-        update: {
-          status: 'pending',
-          attempt: 0,
-        },
-      });
+        });
+      }
     }
 
     // Context to store results of completed steps (for references in variables)
@@ -321,18 +324,10 @@ export class ExecutionEngine {
       attempt++;
       
       // Update step status in db
-      await this.prisma.stepRun.update({
-        where: {
-          runId_stepKey: {
-            runId,
-            stepKey: node.id,
-          },
-        },
-        data: {
-          status: 'running',
-          attempt,
-          startedAt: new Date(),
-        },
+      await this.updateStepRunStatus(runId, node.id, {
+        status: 'running',
+        attempt,
+        startedAt: new Date(),
       });
 
       this.runsGateway.emitToRunRoom(runId, 'step:status_changed', {
@@ -356,17 +351,9 @@ export class ExecutionEngine {
         const output = await this.stepExecutor.execute(node, context);
 
         // Success
-        await this.prisma.stepRun.update({
-          where: {
-            runId_stepKey: {
-              runId,
-              stepKey: node.id,
-            },
-          },
-          data: {
-            status: 'success',
-            completedAt: new Date(),
-          },
+        await this.updateStepRunStatus(runId, node.id, {
+          status: 'success',
+          completedAt: new Date(),
         });
 
         this.runsGateway.emitToRunRoom(runId, 'step:status_changed', {
@@ -413,17 +400,9 @@ export class ExecutionEngine {
           await new Promise((resolve) => setTimeout(resolve, delay));
         } else {
           // Exhausted retries
-          await this.prisma.stepRun.update({
-            where: {
-              runId_stepKey: {
-                runId,
-                stepKey: node.id,
-              },
-            },
-            data: {
-              status: 'failed',
-              completedAt: new Date(),
-            },
+          await this.updateStepRunStatus(runId, node.id, {
+            status: 'failed',
+            completedAt: new Date(),
           });
 
           this.runsGateway.emitToRunRoom(runId, 'step:status_changed', {
@@ -449,18 +428,10 @@ export class ExecutionEngine {
     }
   }
 
-  private async updateStepStatus(runId: string, stepKey: string, status: any): Promise<void> {
-    await this.prisma.stepRun.update({
-      where: {
-        runId_stepKey: {
-          runId,
-          stepKey,
-        },
-      },
-      data: {
-        status,
-        completedAt: new Date(),
-      },
+  private async updateStepStatus(runId: string, stepKey: string, status: StepStatus): Promise<void> {
+    await this.updateStepRunStatus(runId, stepKey, {
+      status,
+      completedAt: new Date(),
     });
 
     this.runsGateway.emitToRunRoom(runId, 'step:status_changed', {
@@ -470,5 +441,26 @@ export class ExecutionEngine {
       attempt: 0,
       timestamp: new Date(),
     });
+  }
+
+  private async updateStepRunStatus(
+    runId: string,
+    stepKey: string,
+    data: {
+      status: StepStatus;
+      attempt?: number;
+      startedAt?: Date;
+      completedAt?: Date;
+    },
+  ): Promise<void> {
+    const stepRun = await this.prisma.stepRun.findFirst({
+      where: { runId, stepKey },
+    });
+    if (stepRun) {
+      await this.prisma.stepRun.update({
+        where: { id: stepRun.id },
+        data,
+      });
+    }
   }
 }
