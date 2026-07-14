@@ -28,11 +28,11 @@
   - Output: `POST /auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout`; guard `TenantGuard`, decorator `@Roles()`
   - DoD: login mengembalikan access+refresh token valid; endpoint terproteksi menolak request tanpa token (`401`) dan role salah (`403`)
   - Test wajib (integration): register→login sukses, akses endpoint terproteksi dengan role salah ditolak
-- [ ] **Task 2.2 — Execution Engine (Executor + Retry + Timeout)**
-  - Referensi: PRD §9.A
-  - Output: modul executor yang mengonsumsi hasil topo-sort, menjalankan step per layer, menangani retry exponential backoff, dan global timeout
-  - DoD: workflow dengan step gagal-lalu-sukses (mock) berhasil retry sesuai `maxRetries`; workflow yang melebihi timeout ditandai `timed_out`
-  - Test wajib (unit): retry backoff formula, timeout enforcement (gunakan fake timers Jest, jangan `sleep` asli di test)
+- [x] **Task 2.2 — Execution Engine (Executor + Retry + Timeout)**
+  - Referensi: PRD §9.A (Execution engine rules), §9.C (AI module), §12 (Node types logic)
+  - Output: Engine/Service penanggung jawab eksekusi step, support retry exponential backoff (`delay = baseDelayMs * 2^attempt`) dan global timeout (15 menit untuk satu run)
+  - DoD: Unit test mensimulasikan step sukses, step gagal lalu sukses setelah retry, step gagal total, dan step yang terkena global timeout (run dibatalkan, status `failed`)
+  - Test wajib (unit): `execution-engine.spec.ts` dengan mock Step Executor (retry backoff formula, timeout enforcement menggunakan fake timers Jest)
 - [ ] **Task 2.3 — Workflow CRUD + Versioning API**
   - Referensi: PRD §10 (Workflows), §9.B
   - Output: seluruh endpoint `/workflows/*` sesuai tabel §10, termasuk versioning dan rollback
