@@ -11,7 +11,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   accessToken: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (tenantSlug: string, email: string, password: string) => Promise<void>;
   register: (tenantName: string, tenantSlug: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -32,8 +32,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => localStorage.getItem('accessToken'),
   );
 
-  const login = useCallback(async (email: string, password: string) => {
-    const { data } = await apiClient.post('/auth/login', { email, password });
+  const login = useCallback(async (tenantSlug: string, email: string, password: string) => {
+    const { data } = await apiClient.post('/auth/login', { tenantSlug, email, password });
     setUser(data.user);
     setAccessToken(data.accessToken);
     localStorage.setItem('accessToken', data.accessToken);

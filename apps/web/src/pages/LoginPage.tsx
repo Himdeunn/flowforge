@@ -10,6 +10,7 @@ export default function LoginPage() {
   // Login form
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loginTenantSlug, setLoginTenantSlug] = useState('');
 
   // Register form
   const [tenantName, setTenantName] = useState('');
@@ -22,7 +23,7 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
+      await login(loginTenantSlug, email, password);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Check your credentials.');
     } finally {
@@ -70,6 +71,18 @@ export default function LoginPage() {
 
         {tab === 'login' ? (
           <form onSubmit={handleLogin} id="login-form">
+            <div className="form-group">
+              <label className="form-label">Organization Slug</label>
+              <input
+                id="login-tenant-slug"
+                className="form-input"
+                type="text"
+                placeholder="acme-corp"
+                value={loginTenantSlug}
+                onChange={(e) => setLoginTenantSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+                required
+              />
+            </div>
             <div className="form-group">
               <label className="form-label">Email</label>
               <input
