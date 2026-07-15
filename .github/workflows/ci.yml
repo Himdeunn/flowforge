@@ -91,7 +91,7 @@ jobs:
       JWT_ACCESS_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
       NODE_ENV: test
-      DISABLE_WORKER: 'true'
+      DISABLE_WORKER: 'false'
 
     steps:
       - name: Checkout code
