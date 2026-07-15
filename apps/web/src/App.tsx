@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
@@ -18,6 +18,13 @@ const queryClient = new QueryClient({
 function AppContent() {
   const { isAuthenticated } = useAuth();
   const [page, setPage] = useState('dashboard');
+
+  // Fix: Redirect to root / if user is authenticated but path says /login
+  useEffect(() => {
+    if (isAuthenticated && (window.location.pathname === '/login' || window.location.pathname.endsWith('/login'))) {
+      window.history.pushState({}, '', '/');
+    }
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) return <LoginPage />;
 
