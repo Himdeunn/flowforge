@@ -118,14 +118,15 @@
   - Output: decorator Swagger di seluruh controller, endpoint `/api/docs` menampilkan dokumentasi interaktif
   - DoD: seluruh endpoint di PRD §10 muncul di Swagger UI
   - Note: decorator per-endpoint sedang dilengkapi (lihat item perbaikan)
-- [ ] **Task 4.7 — Final Review & Submission Checklist**
+- [x] **Task 4.7 — Final Review & Submission Checklist**
   - Referensi: PRD §20 (Definition of Done)
   - Output: jalankan seluruh checklist PRD §20 satu per satu
   - DoD: seluruh item tercentang
 
 ## Item Perbaikan (Ongoing)
-- [ ] Tambahkan Swagger `@ApiOperation`, `@ApiResponse`, `@ApiBody` ke semua controller
-- [ ] Verifikasi `docker compose up` dari fresh clone
-- [ ] Tambahkan `CHANGELOG-DECISIONS.md` ke semua git commit yang relevan
-- [ ] Cek `.env` tidak ter-commit: `git log -p | grep -i "api_key|secret|password"`
-- [ ] Test E2E `trigger.e2e-spec.ts` mencakup WebSocket event assertion
+- [x] Tambahkan Swagger `@ApiOperation`, `@ApiResponse`, `@ApiBody` ke semua controller
+- [x] Verifikasi `docker compose up` dari fresh clone
+- [x] Tambahkan `CHANGELOG-DECISIONS.md` ke semua git commit yang relevan
+- [x] Cek `.env` tidak ter-commit: `git log -p | grep -i "api_key|secret|password"`
+- [x] Test E2E `trigger.e2e-spec.ts` mencakup WebSocket event assertion
+
