@@ -39,7 +39,7 @@ export default tseslint.config(
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/await-thenable': 'off',
       'no-unused-vars': 'off',
-      "prettier/prettier": ["error", { endOfLine: "auto" }],
+      'prettier/prettier': ['error', { endOfLine: 'lf' }],
     },
   },
 );
