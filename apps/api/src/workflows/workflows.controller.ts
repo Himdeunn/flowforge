@@ -19,7 +19,14 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ReqUser } from '../auth/decorators/req-user.decorator';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
 
 @ApiTags('Workflows')
 @ApiBearerAuth()
@@ -34,16 +41,36 @@ export class WorkflowsController {
   @ApiResponse({ status: 201, description: 'Workflow successfully created' })
   @ApiResponse({ status: 400, description: 'Invalid input data or cyclic DAG' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden (Editor or Admin roles required)' })
-  async create(@Body() createWorkflowDto: CreateWorkflowDto, @ReqUser() user: any) {
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden (Editor or Admin roles required)',
+  })
+  async create(
+    @Body() createWorkflowDto: CreateWorkflowDto,
+    @ReqUser() user: any,
+  ) {
     return this.workflowsService.create(createWorkflowDto, user.id);
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all workflow definitions in tenant (cursor-paginated)' })
-  @ApiQuery({ name: 'status', required: false, description: 'Filter by active status: active|inactive' })
-  @ApiQuery({ name: 'cursor', required: false, description: 'Cursor ID for pagination' })
-  @ApiQuery({ name: 'limit', required: false, description: 'Number of items per page' })
+  @ApiOperation({
+    summary: 'List all workflow definitions in tenant (cursor-paginated)',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    description: 'Filter by active status: active|inactive',
+  })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    description: 'Cursor ID for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of items per page',
+  })
   @ApiResponse({ status: 200, description: 'List of workflow definitions' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async findAll(
@@ -69,7 +96,10 @@ export class WorkflowsController {
   @Roles('admin', 'editor')
   @ApiOperation({ summary: 'Update workflow details and create a new version' })
   @ApiParam({ name: 'id', description: 'UUID of the workflow definition' })
-  @ApiResponse({ status: 200, description: 'Workflow successfully updated, new version created' })
+  @ApiResponse({
+    status: 200,
+    description: 'Workflow successfully updated, new version created',
+  })
   @ApiResponse({ status: 400, description: 'Invalid input data or cyclic DAG' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
@@ -86,7 +116,10 @@ export class WorkflowsController {
   @Roles('admin')
   @ApiOperation({ summary: 'Soft delete a workflow definition' })
   @ApiParam({ name: 'id', description: 'UUID of the workflow definition' })
-  @ApiResponse({ status: 200, description: 'Workflow successfully deactivated' })
+  @ApiResponse({
+    status: 200,
+    description: 'Workflow successfully deactivated',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden (Admin role required)' })
   @ApiResponse({ status: 404, description: 'Workflow definition not found' })
@@ -109,8 +142,14 @@ export class WorkflowsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Rollback workflow to a specific version number' })
   @ApiParam({ name: 'id', description: 'UUID of the workflow definition' })
-  @ApiParam({ name: 'versionId', description: 'UUID of the target workflow version' })
-  @ApiResponse({ status: 200, description: 'Workflow successfully rolled back to version' })
+  @ApiParam({
+    name: 'versionId',
+    description: 'UUID of the target workflow version',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Workflow successfully rolled back to version',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Workflow or version not found' })
@@ -127,11 +166,17 @@ export class WorkflowsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Trigger a workflow run manually' })
   @ApiParam({ name: 'id', description: 'UUID of the workflow definition' })
-  @ApiResponse({ status: 200, description: 'Workflow successfully triggered, run queued' })
+  @ApiResponse({
+    status: 200,
+    description: 'Workflow successfully triggered, run queued',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Workflow not found' })
-  async trigger(@Param('id', new ParseUUIDPipe()) id: string, @ReqUser() user: any) {
+  async trigger(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @ReqUser() user: any,
+  ) {
     return this.workflowsService.triggerManual(id, user.id);
   }
 }

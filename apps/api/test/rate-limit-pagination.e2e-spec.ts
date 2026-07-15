@@ -29,18 +29,18 @@ describe('Rate Limiting & Pagination (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api/v1');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
 
     // Register & Login
-    await request(app.getHttpServer())
-      .post('/api/v1/auth/register')
-      .send({
-        tenantName: 'RateLimit Tenant',
-        tenantSlug,
-        email,
-        password,
-      });
+    await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+      tenantName: 'RateLimit Tenant',
+      tenantSlug,
+      email,
+      password,
+    });
 
     const loginRes = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
@@ -61,7 +61,7 @@ describe('Rate Limiting & Pagination (e2e)', () => {
     it('should allow 3 requests but block the 4th request with 429, then recover after window expires', async () => {
       // 1. First 3 requests should pass (note: auth login/register don't count towards tenant limit if they are pre-token, but they might count against IP.
       // However, we set the token for subsequent requests, which will trigger the tenant-based limit).
-      
+
       const req1 = await request(app.getHttpServer())
         .get('/api/v1/workflows')
         .set('Authorization', `Bearer ${accessToken}`);
@@ -108,7 +108,9 @@ describe('Rate Limiting & Pagination (e2e)', () => {
           .send({
             name: `WF Paged ${i}`,
             definitionJson: {
-              nodes: [{ id: 'step', type: 'delay', config: { durationMs: 100 } }],
+              nodes: [
+                { id: 'step', type: 'delay', config: { durationMs: 100 } },
+              ],
               edges: [],
             },
           });
@@ -123,7 +125,7 @@ describe('Rate Limiting & Pagination (e2e)', () => {
       const page1 = await request(app.getHttpServer())
         .get('/api/v1/workflows?limit=1')
         .set('Authorization', `Bearer ${accessToken}`);
-      
+
       expect(page1.status).toBe(200);
       expect(page1.body.length).toBe(1);
       const cursor1 = page1.body[0].id;

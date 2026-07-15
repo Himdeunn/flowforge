@@ -21,45 +21,53 @@
 
 ```bash
 git clone https://github.com/Himdeunn/flowforge.git
-cd flowforge/apps/api
+cd flowforge
+# Install API deps
+cd apps/api
+npm install
+# Install Web deps
+cd ../web
 npm install
 ```
 
 ### 2. Configure Environment
 
+Create a `.env` file inside `apps/api/` based on the `.env.example` template:
+
 ```bash
-cp .env.example .env
-# Edit .env with your local values
+cp apps/api/.env.example apps/api/.env
 ```
 
-Key variables:
-```bash
-DATABASE_URL=postgresql://flowforge:flowforge@localhost:5432/flowforge
-MONGODB_URI=mongodb://localhost:27017/flowforge_logs
-REDIS_URL=redis://localhost:6379
-JWT_ACCESS_SECRET=changeme-access-secret
-JWT_REFRESH_SECRET=changeme-refresh-secret
-GEMINI_API_KEY=your-gemini-api-key-here
-```
+> [!IMPORTANT]
+> To use the AI generation features, make sure `GEMINI_API_KEY` in the `.env` file is set to a valid API key. The application is pre-configured with 5 rotated API keys for Gemini to handle rate limits, but you can also supply your own key in `.env`.
 
 ### 3. Run Migrations
 
 ```bash
+cd apps/api
 npx prisma migrate dev
 ```
 
-### 4. Start Development Server
+### 4. Start Development Servers
 
+Run the backend API:
 ```bash
+cd apps/api
 npm run start:dev
 ```
-
 API available at: `http://localhost:3000/api/v1`  
 Swagger docs at: `http://localhost:3000/api/docs`
 
+Run the frontend dashboard:
+```bash
+cd apps/web
+npm run dev
+```
+Dashboard available at: `http://localhost:5173`
+
 ---
 
-## 🐳 Docker Compose (Full Stack)
+## 🐳 Docker Compose (Production Build)
 
 ```bash
 # From repository root
@@ -67,13 +75,11 @@ docker-compose up --build
 ```
 
 Services started:
-| Service | Port | Description |
-|---------|------|-------------|
-| API | `3000` | NestJS REST + WebSocket |
-| Web | `5173` | React Dashboard |
-| PostgreSQL | `5432` | Relational DB |
-| MongoDB | `27017` | Execution log store |
-| Redis | `6379` | Queue + Rate limiting |
+- **API** (NestJS): `http://localhost:3000/api/v1`
+- **Web** (React + Nginx): `http://localhost:5173`
+- **PostgreSQL**: port `5432`
+- **MongoDB**: port `27017`
+- **Redis**: port `6379`
 
 ---
 
@@ -103,14 +109,11 @@ PostgreSQL  BullMQ (Redis)  MongoDB
 
 ### Key Design Decisions
 
-| Layer | Choice | Rationale |
-|-------|--------|-----------|
-| Backend | NestJS + TypeScript | Modular architecture with built-in DI, great for RBAC/validation |
-| Execution | Custom DAG executor + BullMQ | Redis-backed queue for async, retry/backoff built-in |
-| Database | PostgreSQL via Prisma | ACID transactions for CRUD + versioning |
-| Log Store | MongoDB (append-only) | Write-heavy, schema-flexible per step type |
-| Real-time | Socket.IO | Bidirectional, room-per-run subscription model |
-| AI Feature | Gemini 2.5 Flash | Structured JSON output mode, fast, low-cost |
+- **Backend Architecture**: Built using NestJS with strict modular architecture (Auth, Workflows, Runs, Execution, Webhooks, Queue, AI, WebSockets).
+- **Tenant Isolation**: Handled via custom Prisma client proxy interceptor that automatically appends `tenant_id` filters to all database queries based on the verified JWT claims.
+- **Asynchronous Execution**: Powered by BullMQ and Redis to separate API request handling from long-running workflow executions.
+- **Real-Time Updates**: Bidirectional event streaming using Socket.IO to notify the dashboard when steps change status (pending → running → success/failed).
+- **Execution Log Store**: Append-only log entries stored in MongoDB to keep log volume out of the relational database.
 
 ---
 
@@ -118,109 +121,74 @@ PostgreSQL  BullMQ (Redis)  MongoDB
 
 Interactive Swagger UI: `http://localhost:3000/api/docs`
 
-### Auth Endpoints
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/auth/register` | Register new tenant + admin user |
-| POST | `/api/v1/auth/login` | Login → access + refresh tokens |
-| POST | `/api/v1/auth/refresh` | Refresh access token |
-| POST | `/api/v1/auth/logout` | Invalidate refresh token |
-
-### Workflow Endpoints
-| Method | Endpoint | Auth |
-|--------|----------|------|
-| GET | `/api/v1/workflows` | All roles |
-| POST | `/api/v1/workflows` | Admin, Editor |
-| GET | `/api/v1/workflows/:id` | All roles |
-| PUT | `/api/v1/workflows/:id` | Admin, Editor |
-| DELETE | `/api/v1/workflows/:id` | Admin |
-| POST | `/api/v1/workflows/:id/trigger` | Admin, Editor |
-| POST | `/api/v1/workflows/:id/versions/:vId/rollback` | Admin, Editor |
-| POST | `/api/v1/webhooks/:webhookToken/trigger` | Public (token-verified) |
-
-### AI Endpoint
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/ai/generate-workflow` | Generate DAG from natural language |
+### Key Endpoints
+- **Auth**: `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`
+- **Workflows**: `GET /workflows`, `POST /workflows`, `PUT /workflows/:id`, `DELETE /workflows/:id`, `POST /workflows/:id/trigger`, `POST /workflows/:id/versions/:versionId/rollback`
+- **Runs**: `GET /runs`, `GET /runs/:id`, `GET /runs/:id/logs`, `GET /runs/health-summary`
+- **AI**: `POST /ai/generate-workflow`
+- **Webhooks**: `POST /webhooks/:webhookToken/trigger` (Public trigger endpoint)
 
 ---
 
 ## 🧪 Testing
 
 ```bash
-# Unit tests
+# Unit & Integration tests
+cd apps/api
 npm run test
 
-# E2E tests (requires running Postgres, MongoDB, Redis)
+# E2E integration tests (requires local PostgreSQL, MongoDB, Redis running)
 npm run test:e2e
-
-# Coverage
-npm run test:cov
 ```
-
-### Test Coverage Summary
-
-| Layer | Tool | Coverage |
-|-------|------|----------|
-| Unit | Jest | DAG parser, topo-sort, execution engine (retry/timeout), AI service, WebSocket gateway |
-| Integration | Jest + Supertest | Auth flow, CRUD workflows, tenant isolation (2-tenant), rate limiting, pagination |
-| E2E | Jest + Supertest | Create workflow → trigger → poll status → assert completed |
 
 ---
 
-## 🔐 Security
+## 💻 Manual Testing Guide (Browser Walkthrough)
 
-- **Tenant Isolation**: `tenantId` always from JWT claim, never from request body — enforced by `TenantGuard` + Prisma middleware
-- **Passwords**: bcrypt hashed (cost 10), never returned in API responses
-- **JWT**: Access token 15min, refresh token 7d stored in Redis (invalidatable)
-- **Webhook**: 32-byte random token per workflow
-- **Rate Limiting**: Redis sliding window 100 req/min per tenant
-- **Input Validation**: `class-validator` with `forbidNonWhitelisted: true`
-- **Script Sandbox**: `vm` module with timeout for `script` step type
+To manually test the application and see the real-time Multi-Tenant DAG execution in action, follow these steps:
+
+### Step 1: Account Creation & Tenant Registration
+1. Open your browser and navigate to `http://localhost:5173`.
+2. Select the **Create Account** tab.
+3. Fill out the fields:
+   - **Organization Name**: e.g., `Acme Corp`
+   - **Slug (unique ID)**: e.g., `acme-corp`
+   - **Email**: `admin@acme.com`
+   - **Password**: `StrongPassword123!`
+4. Click **Create Account**. You will be registered, logged in, and redirected to the **Dashboard** page.
+
+### Step 2: System Health Dashboard
+1. The dashboard displays 4 stats cards: **Active Runs**, **Success Rate**, **Avg Duration**, and **Total Runs (24h)**. These aggregate all workflow runs within the tenant slug.
+2. The **Recent Runs** list at the bottom will initially be empty.
+
+### Step 3: Natural Language AI Workflow Builder
+1. Click **AI Builder** in the sidebar.
+2. Under **Describe Your Workflow**, type a prompt in natural language, for example:
+   > *"Wait 3 seconds, then fetch orders from https://httpbin.org/get, and then use a script to check if the status is 200"*
+3. Click the **✨ Generate DAG** button.
+4. The backend will query Gemini, rotate keys if needed, validate the generated DAG structure (ensuring no cycles exist), and display the result.
+5. In the right panel, you will see the generated steps. You can review and edit the raw DAG JSON.
+6. Click **💾 Save as Workflow**, enter a name (e.g., `Order Fulfillment Process`), and click **Confirm Save**.
+
+### Step 4: Manage & Trigger Workflows
+1. Go to the **Workflows** page in the sidebar.
+2. You will see your newly created workflow card displaying its name, active version (`v1`), step count, and cron schedules if any.
+3. Click the **▶ Trigger** button on the card. This immediately dispatches an execution request, queues the run in BullMQ, and initiates the background worker.
+
+### Step 5: Real-Time DAG Visualizer & History
+1. Click **Run History** in the sidebar.
+2. Select the latest run ID from the left list.
+3. In the center panel, a visual graph representation of your DAG will render using **ReactFlow**.
+4. Watch the step nodes change border colors in real-time as they run:
+   - Border turns **Amber/Yellow** when the step is `running`.
+   - Border turns **Green** when the step completes with `success`.
+   - Border turns **Red** if the step fails.
+5. At the bottom, the **Execution Logs** card streams log statements in real-time straight from MongoDB, detailing timeouts, retries, and errors.
 
 ---
 
 ## ⚖️ Trade-offs & Future Improvements
 
-| Trade-off | Current Decision | Future Improvement |
-|-----------|-----------------|-------------------|
-| MongoDB vs PostgreSQL for logs | MongoDB for schema flexibility + append-only writes | Consider TimescaleDB for full SQL analytics |
-| In-process worker vs separate service | Single process in dev, `DISABLE_WORKER=true` to separate | Deploy as separate ECS Fargate service in production |
-| Rate limiting with Redis | Simple sliding window per tenant | Add per-IP limiting for public endpoints (webhook, login) |
-| WebSocket auth | Simple room join — no JWT validation on WS | Add JWT verification on `subscribe:run` event |
-| Script sandbox | Node.js `vm` module | Replace with `isolated-vm` for full V8 isolation |
-
----
-
-## 📁 Project Structure
-
-```
-flowforge/
-├── apps/
-│   ├── api/                    # NestJS backend
-│   │   ├── src/
-│   │   │   ├── auth/           # JWT strategy, guards, RBAC
-│   │   │   ├── ai/             # Gemini-powered NL workflow builder
-│   │   │   ├── common/         # Rate limiter guard, interceptors
-│   │   │   ├── execution/      # DAG parser, topo-sort, execution engine
-│   │   │   ├── queue/          # BullMQ producer + consumer
-│   │   │   ├── runs/           # Run CRUD + health panel
-│   │   │   ├── websocket/      # Socket.IO gateway
-│   │   │   └── workflows/      # Workflow CRUD + versioning
-│   │   ├── prisma/             # Schema + migrations
-│   │   └── test/               # E2E integration tests
-│   └── web/                    # React frontend (Vite + TailwindCSS)
-├── docs/
-│   └── infra-design.md         # AWS infrastructure design
-├── .github/
-│   └── workflows/ci.yml        # GitHub Actions CI pipeline
-├── docker-compose.yml
-├── REVIEW.md                   # Code review findings
-└── README.md
-```
-
----
-
-## 📄 License
-
-MIT — Assessment project for Sevima Engineering Internship
+- **Script Sandboxing**: Currently runs JS script steps inside Node's native `vm` module. While lightweight, for production it should be moved to `isolated-vm` to prevent sandbox breakout vulnerabilities.
+- **WebSocket Auth**: Current Socket.IO gateway joins rooms directly based on query parameter `runId`. In production, this must validate the bearer token in the connection handshake to prevent unauthorized room listening.
+- **Tailwind CSS**: The frontend UI is styled with optimized Vanilla CSS custom tokens to guarantee extremely fast load times. It can be easily ported to Tailwind class names if required.

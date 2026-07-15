@@ -65,7 +65,8 @@ export class RunsService {
     }
 
     const items = await this.prisma.workflowRun.findMany(queryOptions);
-    const nextCursor = items.length === limit ? items[items.length - 1].id : null;
+    const nextCursor =
+      items.length === limit ? items[items.length - 1].id : null;
 
     return {
       data: items,
@@ -106,7 +107,9 @@ export class RunsService {
     });
 
     const totalRuns = recentRuns.length;
-    const successRuns = recentRuns.filter((r) => r.status === 'completed').length;
+    const successRuns = recentRuns.filter(
+      (r) => r.status === 'completed',
+    ).length;
     const successRate = totalRuns > 0 ? successRuns / totalRuns : 1;
 
     // Average duration of completed runs
@@ -116,7 +119,9 @@ export class RunsService {
     const avgDurationMs =
       completedWithDuration.length > 0
         ? completedWithDuration.reduce((sum, r) => {
-            const dur = new Date(r.completedAt!).getTime() - new Date(r.startedAt!).getTime();
+            const dur =
+              new Date(r.completedAt!).getTime() -
+              new Date(r.startedAt!).getTime();
             return sum + dur;
           }, 0) / completedWithDuration.length
         : 0;

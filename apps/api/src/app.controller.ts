@@ -32,4 +32,3 @@ export class AppController {
     return { role: 'editor', data: 'secure-data' };
   }
 }
-

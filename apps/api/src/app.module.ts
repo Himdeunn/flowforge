@@ -22,7 +22,9 @@ import { RateLimiterGuard } from './common/guards/rate-limiter.guard';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI') || 'mongodb://127.0.0.1:27017/flowforge_logs',
+        uri:
+          configService.get<string>('MONGODB_URI') ||
+          'mongodb://127.0.0.1:27017/flowforge_logs',
       }),
       inject: [ConfigService],
     }),

@@ -4,10 +4,22 @@ describe('DagParser & Validator', () => {
   it('should validate a correct DAG definition', () => {
     const validDag = {
       nodes: [
-        { id: 'fetchData', type: 'http', config: { method: 'GET', url: 'https://api.example.com' } },
+        {
+          id: 'fetchData',
+          type: 'http',
+          config: { method: 'GET', url: 'https://api.example.com' },
+        },
         { id: 'wait', type: 'delay', config: { durationMs: 2000 } },
-        { id: 'checkStatus', type: 'condition', config: { expression: 'true' } },
-        { id: 'processData', type: 'script', config: { script: 'transform.js' } },
+        {
+          id: 'checkStatus',
+          type: 'condition',
+          config: { expression: 'true' },
+        },
+        {
+          id: 'processData',
+          type: 'script',
+          config: { script: 'transform.js' },
+        },
       ],
       edges: [
         { from: 'fetchData', to: 'wait' },
@@ -50,9 +62,7 @@ describe('DagParser & Validator', () => {
         { id: 'B', type: 'delay', config: {} },
         { id: 'OrphanNode', type: 'script', config: {} },
       ],
-      edges: [
-        { from: 'A', to: 'B' },
-      ],
+      edges: [{ from: 'A', to: 'B' }],
     };
 
     expect(() => parseAndValidateDag(orphanDag)).toThrow(DagValidationError);
@@ -69,12 +79,12 @@ describe('DagParser & Validator', () => {
         { id: 'A', type: 'http', config: {} },
         { id: 'B', type: 'unknown-type-here', config: {} },
       ],
-      edges: [
-        { from: 'A', to: 'B' },
-      ],
+      edges: [{ from: 'A', to: 'B' }],
     };
 
-    expect(() => parseAndValidateDag(invalidTypeDag)).toThrow(DagValidationError);
+    expect(() => parseAndValidateDag(invalidTypeDag)).toThrow(
+      DagValidationError,
+    );
     try {
       parseAndValidateDag(invalidTypeDag);
     } catch (err: any) {
@@ -84,12 +94,8 @@ describe('DagParser & Validator', () => {
 
   it('should detect self-loops', () => {
     const selfLoopDag = {
-      nodes: [
-        { id: 'A', type: 'http', config: {} },
-      ],
-      edges: [
-        { from: 'A', to: 'A' },
-      ],
+      nodes: [{ id: 'A', type: 'http', config: {} }],
+      edges: [{ from: 'A', to: 'A' }],
     };
 
     expect(() => parseAndValidateDag(selfLoopDag)).toThrow(DagValidationError);

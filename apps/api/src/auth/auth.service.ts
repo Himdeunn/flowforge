@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { JwtService } from '@nestjs/jwt';
@@ -20,10 +24,16 @@ export class AuthService {
     private readonly jwtService: JwtService,
     configService: ConfigService,
   ) {
-    this.accessSecret = configService.get<string>('JWT_ACCESS_SECRET') || 'changeme-access-secret';
-    this.refreshSecret = configService.get<string>('JWT_REFRESH_SECRET') || 'changeme-refresh-secret';
-    this.accessExpiry = configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '15m';
-    this.refreshExpiry = configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
+    this.accessSecret =
+      configService.get<string>('JWT_ACCESS_SECRET') ||
+      'changeme-access-secret';
+    this.refreshSecret =
+      configService.get<string>('JWT_REFRESH_SECRET') ||
+      'changeme-refresh-secret';
+    this.accessExpiry =
+      configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '15m';
+    this.refreshExpiry =
+      configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
   }
 
   async register(dto: RegisterDto) {
@@ -102,7 +112,10 @@ export class AuthService {
     }
 
     // 3. Verify password
-    const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(
+      dto.password,
+      user.passwordHash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid tenant or credentials');
     }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateWorkflowDto } from './dto/create-workflow.dto';
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
@@ -211,7 +215,9 @@ export class WorkflowsService {
     });
 
     if (!version) {
-      throw new NotFoundException(`Workflow version with ID "${versionId}" not found for this workflow.`);
+      throw new NotFoundException(
+        `Workflow version with ID "${versionId}" not found for this workflow.`,
+      );
     }
 
     // Perform rollback by updating currentVersionId

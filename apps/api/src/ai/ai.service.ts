@@ -1,37 +1,42 @@
-import { Injectable, BadRequestException, UnprocessableEntityException } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { parseAndValidateDag } from '../execution/dag-parser';
 
 @Injectable()
 export class AiService {
-  private genAI: GoogleGenerativeAI;
-  private model: any;
+  private keyIndex = 0;
 
-  constructor(private readonly configService: ConfigService) {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    if (apiKey) {
-      this.genAI = new GoogleGenerativeAI(apiKey);
-      this.model = this.genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash',
-        generationConfig: {
-          responseMimeType: 'application/json',
-        },
-      });
+  constructor(private readonly configService: ConfigService) {}
+
+  private getKeys(): string[] {
+    const keysStr = this.configService.get<string>('GEMINI_API_KEYS') || '';
+    const keys = keysStr
+      .split(',')
+      .map((k) => k.trim())
+      .filter(Boolean);
+
+    const singleKey = this.configService.get<string>('GEMINI_API_KEY');
+    if (singleKey && !keys.includes(singleKey)) {
+      keys.unshift(singleKey);
     }
+    return keys;
   }
 
-  async generateWorkflow(prompt: string, currentDefinition?: any): Promise<any> {
+  async generateWorkflow(
+    prompt: string,
+    currentDefinition?: any,
+  ): Promise<any> {
     // Truncate prompt to ~500 tokens (approx. 2000 characters)
     if (prompt.length > 2000) {
       prompt = prompt.substring(0, 2000) + '...';
     }
 
     const isTestMode = this.configService.get<string>('NODE_ENV') === 'test';
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
+    const keys = this.getKeys();
 
     // 1. Mock fallback for E2E tests without real key
-    if (isTestMode || !apiKey) {
+    if (isTestMode || keys.length === 0) {
       return this.getMockDag(prompt, currentDefinition);
     }
 
@@ -113,8 +118,11 @@ Constraints:
 3. Ensure all edge connections link existing nodes.
 `;
 
-    const fullPrompt = `${systemInstruction}\n\n` + 
-      (currentDefinition ? `Current Workflow Definition: ${JSON.stringify(currentDefinition)}\n\n` : '') + 
+    const fullPrompt =
+      `${systemInstruction}\n\n` +
+      (currentDefinition
+        ? `Current Workflow Definition: ${JSON.stringify(currentDefinition)}\n\n`
+        : '') +
       `User Prompt: "${prompt}"\n\nOutput JSON:`;
 
     try {
@@ -126,18 +134,18 @@ Constraints:
       while (attempt <= maxAttempts) {
         try {
           if (attempt === 1) {
-            resultText = await this.callGemini(fullPrompt);
+            resultText = await this.callGeminiWithFallback(fullPrompt);
           } else {
             // Corrective prompt for attempt 2
             const correctivePrompt = `${fullPrompt}\n\nYour previous response was invalid. Please ensure you output ONLY a valid JSON matching the schema and it is a Directed Acyclic Graph (DAG) with no cycles. Correct it and output ONLY the valid JSON:`;
-            resultText = await this.callGemini(correctivePrompt);
+            resultText = await this.callGeminiWithFallback(correctivePrompt);
           }
 
           parsedJson = JSON.parse(resultText);
-          
+
           // Validate schema and check for cycles
           parseAndValidateDag(parsedJson);
-          
+
           // If we reach here, it's successful
           return parsedJson;
         } catch (err) {
@@ -154,10 +162,39 @@ Constraints:
     }
   }
 
-  private async callGemini(prompt: string): Promise<string> {
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    return response.text().trim();
+  private async callGeminiWithFallback(prompt: string): Promise<string> {
+    const keys = this.getKeys();
+    if (keys.length === 0) {
+      throw new Error('No Gemini API keys available');
+    }
+
+    let lastError: Error | null = null;
+    // Attempt with each available key until one succeeds
+    for (let i = 0; i < keys.length; i++) {
+      const apiKey = keys[this.keyIndex % keys.length];
+      this.keyIndex++; // Move to next key for subsequent calls
+
+      try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({
+          model: 'gemini-1.5-flash',
+          generationConfig: {
+            responseMimeType: 'application/json',
+          },
+        });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text().trim();
+      } catch (err) {
+        lastError = err;
+        console.warn(
+          `Gemini call failed with key index ${(this.keyIndex - 1) % keys.length}: ${err.message}. Trying next key...`,
+        );
+      }
+    }
+    throw new Error(
+      `All Gemini API keys failed. Last error: ${lastError?.message}`,
+    );
   }
 
   private getMockDag(prompt: string, currentDefinition?: any): any {
@@ -198,11 +235,13 @@ Constraints:
     return {
       nodes: [
         { id: 'node1', type: 'delay', config: { durationMs: 1000 } },
-        { id: 'node2', type: 'http', config: { url: 'http://example.com/api', method: 'GET' } },
+        {
+          id: 'node2',
+          type: 'http',
+          config: { url: 'http://example.com/api', method: 'GET' },
+        },
       ],
-      edges: [
-        { from: 'node1', to: 'node2' },
-      ],
+      edges: [{ from: 'node1', to: 'node2' }],
     };
   }
 }

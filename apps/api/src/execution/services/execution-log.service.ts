@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ExecutionLog, ExecutionLogDocument } from '../schemas/execution-log.schema';
+import {
+  ExecutionLog,
+  ExecutionLogDocument,
+} from '../schemas/execution-log.schema';
 
 @Injectable()
 export class ExecutionLogService {
@@ -33,9 +36,6 @@ export class ExecutionLogService {
   }
 
   async getLogsForRun(runId: string): Promise<ExecutionLog[]> {
-    return this.logModel
-      .find({ runId })
-      .sort({ timestamp: 1 })
-      .exec();
+    return this.logModel.find({ runId }).sort({ timestamp: 1 }).exec();
   }
 }

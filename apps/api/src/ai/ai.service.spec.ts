@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AiService } from './ai.service';
 import { ConfigService } from '@nestjs/config';
-import { UnprocessableEntityException } from '@nestjs/common';
 
 describe('AiService', () => {
   let service: AiService;
@@ -29,7 +28,9 @@ describe('AiService', () => {
   });
 
   it('should return a mock DAG when NODE_ENV is test', async () => {
-    const result = await service.generateWorkflow('create a workflow that sends an HTTP request');
+    const result = await service.generateWorkflow(
+      'create a workflow that sends an HTTP request',
+    );
     expect(result).toHaveProperty('nodes');
     expect(result).toHaveProperty('edges');
     expect(Array.isArray(result.nodes)).toBe(true);
@@ -47,10 +48,19 @@ describe('AiService', () => {
 
   it('should augment existing definition when currentDefinition is provided', async () => {
     const current = {
-      nodes: [{ id: 'fetch', type: 'http', config: { url: 'http://test.com', method: 'GET' } }],
+      nodes: [
+        {
+          id: 'fetch',
+          type: 'http',
+          config: { url: 'http://test.com', method: 'GET' },
+        },
+      ],
       edges: [],
     };
-    const result = await service.generateWorkflow('add a delay step after fetch', current);
+    const result = await service.generateWorkflow(
+      'add a delay step after fetch',
+      current,
+    );
     expect(result.nodes.length).toBeGreaterThan(1);
   });
 

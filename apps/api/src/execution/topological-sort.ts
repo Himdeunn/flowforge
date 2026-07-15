@@ -3,7 +3,7 @@ import { DagDefinition } from './dag-parser';
 export function getExecutionLayers(dag: DagDefinition): string[][] {
   const { nodes, edges } = dag;
 
-  const nodeIds = nodes.map(n => n.id);
+  const nodeIds = nodes.map((n) => n.id);
   const inDegree: Record<string, number> = {};
   const adjList: Record<string, string[]> = {};
 

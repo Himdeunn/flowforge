@@ -1,4 +1,11 @@
-import { Controller, Post, Param, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Param,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { WorkflowsService } from './workflows.service';
 import { Public } from '../auth/decorators/public.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -15,7 +22,10 @@ export class WebhooksController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Trigger a workflow run via public webhook' })
-  @ApiResponse({ status: 200, description: 'Workflow successfully triggered and queued' })
+  @ApiResponse({
+    status: 200,
+    description: 'Workflow successfully triggered and queued',
+  })
   @ApiResponse({ status: 404, description: 'Invalid webhook token' })
   async triggerWebhook(@Param('webhookToken') webhookToken: string) {
     return this.workflowsService.triggerWebhook(webhookToken);

@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty, IsString, Length, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  Length,
+  Matches,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
@@ -14,7 +20,8 @@ export class RegisterDto {
   tenantName: string;
 
   @ApiProperty({
-    description: 'Unique URL slug for the tenant (lowercase, numbers, and hyphens only)',
+    description:
+      'Unique URL slug for the tenant (lowercase, numbers, and hyphens only)',
     example: 'acme-corp',
     minLength: 3,
     maxLength: 50,
@@ -23,7 +30,8 @@ export class RegisterDto {
   @IsString()
   @Length(3, 50)
   @Matches(/^[a-z0-9-]+$/, {
-    message: 'tenantSlug can only contain lowercase letters, numbers, and hyphens',
+    message:
+      'tenantSlug can only contain lowercase letters, numbers, and hyphens',
   })
   tenantSlug: string;
 

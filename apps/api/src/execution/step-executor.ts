@@ -10,7 +10,7 @@ export class StepExecutor {
     if (typeof value === 'string') {
       // Regular expression to find {{steps.nodeId.path}}
       const regex = /\{\{steps\.([^}]+)\}\}/g;
-      
+
       // If the string is EXACTLY a single template expression, we return the actual type (not just stringified)
       const exactMatch = value.match(/^\{\{steps\.([^}]+)\}\}$/);
       if (exactMatch) {
@@ -22,7 +22,9 @@ export class StepExecutor {
         if (resolved === undefined || resolved === null) {
           return '';
         }
-        return typeof resolved === 'object' ? JSON.stringify(resolved) : String(resolved);
+        return typeof resolved === 'object'
+          ? JSON.stringify(resolved)
+          : String(resolved);
       });
     }
 
@@ -75,12 +77,13 @@ export class StepExecutor {
         };
 
         if (body && ['POST', 'PUT', 'PATCH'].includes(method.toUpperCase())) {
-          fetchOptions.body = typeof body === 'object' ? JSON.stringify(body) : String(body);
+          fetchOptions.body =
+            typeof body === 'object' ? JSON.stringify(body) : String(body);
         }
 
         const res = await fetch(url, fetchOptions);
         const contentType = res.headers.get('content-type') || '';
-        
+
         let responseBody: any;
         if (contentType.includes('application/json')) {
           responseBody = await res.json();
@@ -91,7 +94,9 @@ export class StepExecutor {
         if (!res.ok) {
           throw new Error(
             `HTTP request failed with status ${res.status}: ${
-              typeof responseBody === 'object' ? JSON.stringify(responseBody) : responseBody
+              typeof responseBody === 'object'
+                ? JSON.stringify(responseBody)
+                : responseBody
             }`,
           );
         }
@@ -106,7 +111,9 @@ export class StepExecutor {
       case 'delay': {
         const { durationMs } = interpolatedConfig;
         if (typeof durationMs !== 'number' || durationMs < 0) {
-          throw new Error(`Delay step "${stepNode.id}" has invalid durationMs: ${durationMs}`);
+          throw new Error(
+            `Delay step "${stepNode.id}" has invalid durationMs: ${durationMs}`,
+          );
         }
 
         await new Promise((resolve) => setTimeout(resolve, durationMs));
@@ -116,7 +123,9 @@ export class StepExecutor {
       case 'condition': {
         const { expression } = interpolatedConfig;
         if (!expression) {
-          throw new Error(`Condition step "${stepNode.id}" is missing expression.`);
+          throw new Error(
+            `Condition step "${stepNode.id}" is missing expression.`,
+          );
         }
 
         // Evaluate expression using node vm
@@ -124,14 +133,18 @@ export class StepExecutor {
           const result = vm.runInNewContext(expression, {}, { timeout: 1000 });
           return { expression, result: !!result };
         } catch (err) {
-          throw new Error(`Condition step "${stepNode.id}" evaluation error: ${err.message}`);
+          throw new Error(
+            `Condition step "${stepNode.id}" evaluation error: ${err.message}`,
+          );
         }
       }
 
       case 'script': {
         const { script } = interpolatedConfig;
         if (!script) {
-          throw new Error(`Script step "${stepNode.id}" is missing script source code.`);
+          throw new Error(
+            `Script step "${stepNode.id}" is missing script source code.`,
+          );
         }
 
         const sandbox = {
@@ -147,15 +160,19 @@ export class StepExecutor {
               ${script}
             })()
           `;
-          const result = vm.runInContext(wrappedScript, sandbox, { timeout: 5000 });
-          
+          const result = vm.runInContext(wrappedScript, sandbox, {
+            timeout: 5000,
+          });
+
           // Return the result of the script or fallback to sandbox.output
           if (result !== undefined) {
             return result;
           }
           return sandbox.output;
         } catch (err) {
-          throw new Error(`Script step "${stepNode.id}" failed: ${err.message}`);
+          throw new Error(
+            `Script step "${stepNode.id}" failed: ${err.message}`,
+          );
         }
       }
 

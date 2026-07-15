@@ -14,7 +14,12 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.WEB_ORIGIN || 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type', 'X-Tenant-ID', 'X-Request-ID'],
+    allowedHeaders: [
+      'Authorization',
+      'Content-Type',
+      'X-Tenant-ID',
+      'X-Request-ID',
+    ],
     credentials: true,
   });
 
@@ -32,7 +37,7 @@ async function bootstrap() {
     .setTitle('FlowForge API')
     .setDescription(
       'Real-Time Multi-Tenant Workflow Orchestration Engine\n\n' +
-      '**Auth:** Use POST /auth/login to obtain a Bearer token, then click "Authorize" and paste it.',
+        '**Auth:** Use POST /auth/login to obtain a Bearer token, then click "Authorize" and paste it.',
     )
     .setVersion('1.0')
     .addBearerAuth()
