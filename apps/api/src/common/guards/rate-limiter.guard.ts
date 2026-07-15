@@ -30,6 +30,15 @@ export class RateLimiterGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
+    const path = request.path || '';
+    if (
+      path.includes('/auth/register') ||
+      path.includes('/auth/login') ||
+      path.includes('/auth/refresh')
+    ) {
+      return true;
+    }
+
     // Check if route is public
     // You can bypass rate limit on specific paths if necessary, but applying it globally is safer
     const tenantId = request.tenantId;
