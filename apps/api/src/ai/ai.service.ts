@@ -168,32 +168,47 @@ Constraints:
       throw new Error('No Gemini API keys available');
     }
 
+    // List of models in order of preference
+    const candidateModels = [
+      'gemini-3.5-flash',
+      'gemini-3.1-flash-lite',
+      'gemini-2.5-flash',
+      'gemini-1.5-flash',
+    ];
+
     let lastError: Error | null = null;
     // Attempt with each available key until one succeeds
     for (let i = 0; i < keys.length; i++) {
       const apiKey = keys[this.keyIndex % keys.length];
       this.keyIndex++; // Move to next key for subsequent calls
 
-      try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({
-          model: 'gemini-2.5-flash',
-          generationConfig: {
-            responseMimeType: 'application/json',
-          },
-        });
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        return response.text().trim();
-      } catch (err) {
-        lastError = err;
-        console.warn(
-          `Gemini call failed with key index ${(this.keyIndex - 1) % keys.length}: ${err.message}. Trying next key...`,
-        );
+      // Try each candidate model with the current key
+      for (const modelName of candidateModels) {
+        try {
+          const genAI = new GoogleGenerativeAI(apiKey);
+          const model = genAI.getGenerativeModel({
+            model: modelName,
+            generationConfig: {
+              responseMimeType: 'application/json',
+            },
+          });
+          const result = await model.generateContent(prompt);
+          const response = await result.response;
+          const text = response.text().trim();
+          if (text) {
+            console.log(`Successfully generated workflow definition using model: ${modelName}`);
+            return text;
+          }
+        } catch (err) {
+          lastError = err;
+          console.warn(
+            `Gemini call failed with key index ${(this.keyIndex - 1) % keys.length} and model ${modelName}: ${err.message}. Trying next combination...`,
+          );
+        }
       }
     }
     throw new Error(
-      `All Gemini API keys failed. Last error: ${lastError?.message}`,
+      `All Gemini API keys and models failed. Last error: ${lastError?.message}`,
     );
   }
 
