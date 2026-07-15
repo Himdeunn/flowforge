@@ -52,7 +52,7 @@ Skema JSON Target:
       "type": "http" | "script" | "delay" | "condition",
       "config": {
         // for "http":
-        "url": "http://example.com/api",
+        "url": "https://jsonplaceholder.typicode.com/users",
         "method": "GET" | "POST" | "PUT" | "DELETE",
         "headers": {}, // optional object
         "body": "stringified or raw body", // optional
@@ -80,12 +80,12 @@ Skema JSON Target:
 }
 
 Few-shot Contoh 1 (New workflow from scratch):
-Description: "Delay 5 detik lalu ambil data dari http://api.com/users"
+Description: "Delay 5 detik lalu ambil data dari https://jsonplaceholder.typicode.com/users"
 Output:
 {
   "nodes": [
     { "id": "wait_step", "type": "delay", "config": { "durationMs": 5000 } },
-    { "id": "fetch_users", "type": "http", "config": { "url": "http://api.com/users", "method": "GET" } }
+    { "id": "fetch_users", "type": "http", "config": { "url": "https://jsonplaceholder.typicode.com/users", "method": "GET" } }
   ],
   "edges": [
     { "from": "wait_step", "to": "fetch_users" }
@@ -96,7 +96,7 @@ Few-shot Contoh 2 (Edit existing workflow):
 Current Definition:
 {
   "nodes": [
-    { "id": "fetch_data", "type": "http", "config": { "url": "http://api.com/data", "method": "GET" } }
+    { "id": "fetch_data", "type": "http", "config": { "url": "https://httpbin.org/get", "method": "GET" } }
   ],
   "edges": []
 }
@@ -104,7 +104,7 @@ Prompt: "tambahkan delay 2 detik setelah fetch_data"
 Output:
 {
   "nodes": [
-    { "id": "fetch_data", "type": "http", "config": { "url": "http://api.com/data", "method": "GET" } },
+    { "id": "fetch_data", "type": "http", "config": { "url": "https://httpbin.org/get", "method": "GET" } },
     { "id": "delay_step", "type": "delay", "config": { "durationMs": 2000 } }
   ],
   "edges": [
