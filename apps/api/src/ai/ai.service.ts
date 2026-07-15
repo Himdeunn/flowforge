@@ -196,7 +196,9 @@ Constraints:
           const response = await result.response;
           const text = response.text().trim();
           if (text) {
-            console.log(`Successfully generated workflow definition using model: ${modelName}`);
+            console.log(
+              `Successfully generated workflow definition using model: ${modelName}`,
+            );
             return text;
           }
         } catch (err) {
