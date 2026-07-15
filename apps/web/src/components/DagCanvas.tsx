@@ -10,7 +10,7 @@ import ReactFlow, {
 } from 'reactflow';
 import type { Node, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { workflowsApi } from '../lib/api-helpers';
+import { workflowsApi, runsApi } from '../lib/api-helpers';
 import { subscribeToRun } from '../lib/socket';
 
 interface Props {
@@ -56,6 +56,12 @@ export default function DagCanvas({ workflowId, runId }: Props) {
     enabled: !!workflowId,
   });
 
+  const { data: run } = useQuery({
+    queryKey: ['run', runId],
+    queryFn: () => runsApi.get(runId!),
+    enabled: !!runId,
+  });
+
   const definition = workflow?.currentVersion?.definitionJson;
   const { nodes: initNodes, edges: initEdges } = dagToFlow(definition);
 
@@ -68,6 +74,19 @@ export default function DagCanvas({ workflowId, runId }: Props) {
     setNodes(n);
     setEdges(e);
   }, [definition]);
+
+  // Initialize step statuses from database run
+  useEffect(() => {
+    if (run && run.stepRuns) {
+      const statuses: Record<string, string> = {};
+      run.stepRuns.forEach((sr: any) => {
+        statuses[sr.stepKey] = sr.status;
+      });
+      setStepStatuses(statuses);
+    } else {
+      setStepStatuses({});
+    }
+  }, [run]);
 
   // Color nodes by step status
   useEffect(() => {

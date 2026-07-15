@@ -178,7 +178,50 @@ export default function WorkflowsPage() {
                 <input id="wf-cron" className="form-input" value={newCron} onChange={(e) => setNewCron(e.target.value)} placeholder="*/5 * * * *" />
               </div>
               <div className="form-group">
-                <label className="form-label">DAG Definition (JSON) *</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <label className="form-label" style={{ margin: 0 }}>DAG Definition (JSON) *</label>
+                  <select
+                    className="form-select form-select-sm"
+                    style={{ width: 'auto', padding: '2px 8px', fontSize: 11, background: 'var(--color-bg-card)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 4 }}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === 'simple') {
+                        setNewDag(JSON.stringify({
+                          nodes: [
+                            { id: "delay_step", type: "delay", config: { durationMs: 3000 } },
+                            { id: "fetch_data", type: "http", config: { url: "https://jsonplaceholder.typicode.com/users", method: "GET" } }
+                          ],
+                          edges: [{ from: "delay_step", to: "fetch_data" }]
+                        }, null, 2));
+                      } else if (val === 'fulfillment') {
+                        setNewDag(JSON.stringify({
+                          nodes: [
+                            { id: "check_stock", type: "script", config: { script: "const stock = 10; if(stock <= 0) throw new Error('Out of stock'); return { stock };" } },
+                            { id: "process_payment", type: "http", config: { url: "https://httpbin.org/post", method: "POST", body: { amount: 100 } } },
+                            { id: "send_receipt", type: "delay", config: { durationMs: 1000 } }
+                          ],
+                          edges: [
+                            { from: "check_stock", to: "process_payment" },
+                            { from: "process_payment", to: "send_receipt" }
+                          ]
+                        }, null, 2));
+                      } else if (val === 'chaining') {
+                        setNewDag(JSON.stringify({
+                          nodes: [
+                            { id: "fetch_user", type: "http", config: { url: "https://jsonplaceholder.typicode.com/users/1", method: "GET" } },
+                            { id: "post_log", type: "http", config: { url: "https://httpbin.org/post", method: "POST", body: { userId: "{{steps.fetch_user.output.id}}", name: "{{steps.fetch_user.output.name}}" } } }
+                          ],
+                          edges: [{ from: "fetch_user", to: "post_log" }]
+                        }, null, 2));
+                      }
+                    }}
+                  >
+                    <option value="">-- Load Template --</option>
+                    <option value="simple">Simple Delayed Request (Delay + HTTP)</option>
+                    <option value="fulfillment">Order Fulfillment (Script + HTTP + Delay)</option>
+                    <option value="chaining">API Chaining (HTTP + Dynamic HTTP)</option>
+                  </select>
+                </div>
                 <textarea
                   id="wf-dag"
                   className="form-textarea"
