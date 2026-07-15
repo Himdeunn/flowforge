@@ -141,7 +141,8 @@ Constraints:
             resultText = await this.callGeminiWithFallback(correctivePrompt);
           }
 
-          parsedJson = JSON.parse(resultText);
+          const cleanedText = this.cleanJsonText(resultText);
+          parsedJson = JSON.parse(cleanedText);
 
           // Validate schema and check for cycles
           parseAndValidateDag(parsedJson);
@@ -260,5 +261,20 @@ Constraints:
       ],
       edges: [{ from: 'node1', to: 'node2' }],
     };
+  }
+
+  private cleanJsonText(text: string): string {
+    let cleaned = text.trim();
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replace(/^```[a-zA-Z]*\s*/, '');
+      cleaned = cleaned.replace(/\s*```$/, '');
+      cleaned = cleaned.trim();
+    }
+    const startIdx = cleaned.indexOf('{');
+    const endIdx = cleaned.lastIndexOf('}');
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+      return cleaned.substring(startIdx, endIdx + 1);
+    }
+    return cleaned;
   }
 }
