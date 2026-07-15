@@ -32,3 +32,5 @@ Desktop.ini
 # Docker & logs
 docker-compose.override.yml
 *.log
+*.rdb
+
