@@ -118,22 +118,35 @@ Constraints:
       `User Prompt: "${prompt}"\n\nOutput JSON:`;
 
     try {
-      let resultText = await this.callGemini(fullPrompt);
+      let resultText: string;
       let parsedJson: any;
+      let attempt = 1;
+      const maxAttempts = 2;
 
-      try {
-        parsedJson = JSON.parse(resultText);
-      } catch (err) {
-        // Retry 1x with corrective prompt
-        const correctivePrompt = `${fullPrompt}\n\nYour previous response was not a valid JSON. The error was: ${err.message}. Please correct it and output ONLY the valid JSON:`;
-        resultText = await this.callGemini(correctivePrompt);
-        parsedJson = JSON.parse(resultText);
+      while (attempt <= maxAttempts) {
+        try {
+          if (attempt === 1) {
+            resultText = await this.callGemini(fullPrompt);
+          } else {
+            // Corrective prompt for attempt 2
+            const correctivePrompt = `${fullPrompt}\n\nYour previous response was invalid. Please ensure you output ONLY a valid JSON matching the schema and it is a Directed Acyclic Graph (DAG) with no cycles. Correct it and output ONLY the valid JSON:`;
+            resultText = await this.callGemini(correctivePrompt);
+          }
+
+          parsedJson = JSON.parse(resultText);
+          
+          // Validate schema and check for cycles
+          parseAndValidateDag(parsedJson);
+          
+          // If we reach here, it's successful
+          return parsedJson;
+        } catch (err) {
+          if (attempt === maxAttempts) {
+            throw err; // Escalate error to outer catch
+          }
+          attempt++;
+        }
       }
-
-      // Validate parsed JSON against DAG schema and cycle detection
-      parseAndValidateDag(parsedJson);
-
-      return parsedJson;
     } catch (err) {
       throw new UnprocessableEntityException(
         `AI was unable to generate a valid workflow from this description. Try being more specific. Error: ${err.message}`,
