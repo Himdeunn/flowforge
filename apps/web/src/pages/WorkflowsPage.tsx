@@ -213,6 +213,27 @@ export default function WorkflowsPage() {
                           ],
                           edges: [{ from: "fetch_user", to: "post_log" }]
                         }, null, 2));
+                      } else if (val === 'overpowered') {
+                        setNewDag(JSON.stringify({
+                          nodes: [
+                            { id: "initialize", type: "script", config: { script: "const amount = 500; const region = 'APAC'; return { amount, region, isVIP: amount > 200 };" } },
+                            { id: "check_vip", type: "condition", config: { expression: "'{{steps.initialize.output.isVIP}}' === 'true'" } },
+                            { id: "fetch_vip_bonus", type: "http", config: { url: "https://httpbin.org/get?bonus=100&region={{steps.initialize.output.region}}", method: "GET" } },
+                            { id: "process_vip_payment", type: "script", config: { script: "const baseAmount = parseInt('{{steps.initialize.output.amount}}'); const bonus = 100; return { total: baseAmount - bonus, status: 'VIP_PROCESSED' };" } },
+                            { id: "process_standard_payment", type: "script", config: { script: "const baseAmount = parseInt('{{steps.initialize.output.amount}}'); return { total: baseAmount, status: 'STANDARD_PROCESSED' };" } },
+                            { id: "delay_settlement", type: "delay", config: { durationMs: 2000 } },
+                            { id: "post_invoice", type: "http", config: { url: "https://httpbin.org/post", method: "POST", body: { status: "SETTLED", region: "{{steps.initialize.output.region}}", amount: "{{steps.process_vip_payment.output.total}}{{steps.process_standard_payment.output.total}}" } } }
+                          ],
+                          edges: [
+                            { from: "initialize", to: "check_vip" },
+                            { from: "check_vip", to: "fetch_vip_bonus", conditionValue: true },
+                            { from: "fetch_vip_bonus", to: "process_vip_payment" },
+                            { from: "check_vip", to: "process_standard_payment", conditionValue: false },
+                            { from: "process_vip_payment", to: "delay_settlement" },
+                            { from: "process_standard_payment", to: "delay_settlement" },
+                            { from: "delay_settlement", to: "post_invoice" }
+                          ]
+                        }, null, 2));
                       }
                     }}
                   >
@@ -220,6 +241,7 @@ export default function WorkflowsPage() {
                     <option value="simple">Simple Delayed Request (Delay + HTTP)</option>
                     <option value="fulfillment">Order Fulfillment (Script + HTTP + Delay)</option>
                     <option value="chaining">API Chaining (HTTP + Dynamic HTTP)</option>
+                    <option value="overpowered">🔥 Super Overpowered Pipeline (Complex Branching)</option>
                   </select>
                 </div>
                 <textarea
