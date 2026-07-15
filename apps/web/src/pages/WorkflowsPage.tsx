@@ -90,7 +90,7 @@ export default function WorkflowsPage() {
 
       {isLoading ? (
         <div className="loading-center"><span className="spinner" /></div>
-      ) : data?.data?.length === 0 ? (
+      ) : data?.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '48px' }}>
           <p style={{ fontSize: 18, fontWeight: 600, color: 'var(--color-text)', marginBottom: 8 }}>No workflows yet</p>
           <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginBottom: 24 }}>
@@ -104,7 +104,7 @@ export default function WorkflowsPage() {
         </div>
       ) : (
         <div className="card-grid">
-          {data?.data?.map((wf: any) => (
+          {data?.map((wf: any) => (
             <div key={wf.id} className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                 <div>
