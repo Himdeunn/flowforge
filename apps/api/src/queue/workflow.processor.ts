@@ -1,9 +1,18 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Worker, Job } from 'bullmq';
 import { ExecutionEngine } from '../execution/execution-engine';
 
-function parseRedisUrl(url: string): { host: string; port: number; password?: string } {
+function parseRedisUrl(url: string): {
+  host: string;
+  port: number;
+  password?: string;
+} {
   try {
     const parsed = new URL(url);
     return {
@@ -29,25 +38,31 @@ export class WorkflowProcessor implements OnModuleInit, OnModuleDestroy {
   onModuleInit() {
     // Only start processor if explicitly enabled (or in dev/test where both API and Worker can run together)
     // We can default to enabling it so it runs out-of-the-box in all modes unless explicitly disabled
-    const disableWorker = this.configService.get<string>('DISABLE_WORKER') === 'true';
+    const disableWorker =
+      this.configService.get<string>('DISABLE_WORKER') === 'true';
     if (disableWorker) {
       this.logger.log('BullMQ Worker processor is disabled on this instance.');
       return;
     }
 
-    const redisUrl = this.configService.get<string>('REDIS_URL') || 'redis://localhost:6379';
+    const redisUrl =
+      this.configService.get<string>('REDIS_URL') || 'redis://localhost:6379';
     const connection = parseRedisUrl(redisUrl);
 
     this.worker = new Worker(
       'workflow-exec',
       async (job: Job) => {
         const { runId, tenantId } = job.data;
-        this.logger.log(`Processing workflow run job: ${runId} for tenant: ${tenantId}`);
-        
+        this.logger.log(
+          `Processing workflow run job: ${runId} for tenant: ${tenantId}`,
+        );
+
         try {
           await this.executionEngine.executeWorkflow(runId);
         } catch (err) {
-          this.logger.error(`Error executing workflow run "${runId}": ${err.message}`);
+          this.logger.error(
+            `Error executing workflow run "${runId}": ${err.message}`,
+          );
           throw err;
         }
       },
@@ -68,7 +83,9 @@ export class WorkflowProcessor implements OnModuleInit, OnModuleDestroy {
       this.logger.error(`Job ${job?.id} failed with error: ${err.message}`);
     });
 
-    this.logger.log('BullMQ Worker processor initialized and listening for jobs.');
+    this.logger.log(
+      'BullMQ Worker processor initialized and listening for jobs.',
+    );
   }
 
   async onModuleDestroy() {

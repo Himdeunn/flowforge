@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsOptional, IsString, IsObject, Length } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsObject,
+  Length,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateWorkflowDto {
@@ -23,17 +29,26 @@ export class CreateWorkflowDto {
   description?: string;
 
   @ApiProperty({
-    description: 'Directed Acyclic Graph (DAG) JSON definition of nodes and edges',
+    description:
+      'Directed Acyclic Graph (DAG) JSON definition of nodes and edges',
     example: {
       nodes: [
-        { id: 'fetchData', type: 'http', config: { method: 'GET', url: 'https://api.example.com/data' } },
+        {
+          id: 'fetchData',
+          type: 'http',
+          config: { method: 'GET', url: 'https://api.example.com/data' },
+        },
         { id: 'wait', type: 'delay', config: { durationMs: 2000 } },
-        { id: 'checkStatus', type: 'condition', config: { expression: 'steps.fetchData.output.status == 200' } }
+        {
+          id: 'checkStatus',
+          type: 'condition',
+          config: { expression: 'steps.fetchData.output.status == 200' },
+        },
       ],
       edges: [
         { from: 'fetchData', to: 'wait' },
-        { from: 'wait', to: 'checkStatus' }
-      ]
+        { from: 'wait', to: 'checkStatus' },
+      ],
     },
   })
   @IsNotEmpty()
@@ -41,7 +56,8 @@ export class CreateWorkflowDto {
   definitionJson: Record<string, any>;
 
   @ApiProperty({
-    description: 'Optional cron expression to trigger the workflow automatically on a schedule',
+    description:
+      'Optional cron expression to trigger the workflow automatically on a schedule',
     example: '*/15 * * * *',
     required: false,
   })

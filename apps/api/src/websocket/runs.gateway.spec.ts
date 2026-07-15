@@ -33,7 +33,10 @@ describe('RunsGateway', () => {
       leave: jest.fn(),
     } as unknown as Socket;
 
-    const result = gateway.handleUnsubscribeRun({ runId: 'run-123' }, mockSocket);
+    const result = gateway.handleUnsubscribeRun(
+      { runId: 'run-123' },
+      mockSocket,
+    );
 
     expect(mockSocket.leave).toHaveBeenCalledWith('run:run-123');
     expect(result).toEqual({ status: 'unsubscribed', runId: 'run-123' });

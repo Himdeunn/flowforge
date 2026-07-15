@@ -11,7 +11,7 @@ jest.setTimeout(30000);
 
 describe('Tenant Isolation (e2e)', () => {
   let app: INestApplication<App>;
-  
+
   // Tenant A Credentials
   const randA = Math.floor(Math.random() * 1000000);
   const tenantSlugA = `tenant-a-${randA}`;
@@ -35,18 +35,18 @@ describe('Tenant Isolation (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api/v1');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
 
     // Register & Login Tenant A
-    await request(app.getHttpServer())
-      .post('/api/v1/auth/register')
-      .send({
-        tenantName: 'Tenant A',
-        tenantSlug: tenantSlugA,
-        email: emailA,
-        password: passwordA,
-      });
+    await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+      tenantName: 'Tenant A',
+      tenantSlug: tenantSlugA,
+      email: emailA,
+      password: passwordA,
+    });
 
     const loginResA = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
@@ -58,14 +58,12 @@ describe('Tenant Isolation (e2e)', () => {
     tokenA = loginResA.body.accessToken;
 
     // Register & Login Tenant B
-    await request(app.getHttpServer())
-      .post('/api/v1/auth/register')
-      .send({
-        tenantName: 'Tenant B',
-        tenantSlug: tenantSlugB,
-        email: emailB,
-        password: passwordB,
-      });
+    await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+      tenantName: 'Tenant B',
+      tenantSlug: tenantSlugB,
+      email: emailB,
+      password: passwordB,
+    });
 
     const loginResB = await request(app.getHttpServer())
       .post('/api/v1/auth/login')

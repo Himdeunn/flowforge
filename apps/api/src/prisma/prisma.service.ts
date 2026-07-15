@@ -4,7 +4,10 @@ import { AsyncLocalStorage } from 'async_hooks';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   // AsyncLocalStorage to store the current tenantId for tenant isolation
   public static readonly tenantStorage = new AsyncLocalStorage<string>();
 
@@ -46,7 +49,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
                     if (modelsWithTenant.includes(modelName)) {
                       // Inject tenantId filter on methods that accept where
-                      if (modelProp !== 'create' && modelProp !== 'createMany') {
+                      if (
+                        modelProp !== 'create' &&
+                        modelProp !== 'createMany'
+                      ) {
                         queryArgs.where = queryArgs.where || {};
                         queryArgs.where.tenantId = tenantId;
                       }

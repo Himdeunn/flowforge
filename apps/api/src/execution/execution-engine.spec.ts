@@ -71,7 +71,11 @@ describe('ExecutionEngine', () => {
     const definitionJson = {
       nodes: [
         { id: 'step1', type: 'delay', config: { durationMs: 100 } },
-        { id: 'step2', type: 'script', config: { script: 'output.result = 1;' } },
+        {
+          id: 'step2',
+          type: 'script',
+          config: { script: 'output.result = 1;' },
+        },
       ],
       edges: [{ from: 'step1', to: 'step2' }],
     };
@@ -114,8 +118,16 @@ describe('ExecutionEngine', () => {
     });
 
     expect(mockStepExecutor.execute).toHaveBeenCalledTimes(2);
-    expect(runsGateway.emitToRunRoom).toHaveBeenCalledWith(runId, 'run:started', expect.any(Object));
-    expect(runsGateway.emitToRunRoom).toHaveBeenCalledWith(runId, 'run:completed', expect.any(Object));
+    expect(runsGateway.emitToRunRoom).toHaveBeenCalledWith(
+      runId,
+      'run:started',
+      expect.any(Object),
+    );
+    expect(runsGateway.emitToRunRoom).toHaveBeenCalledWith(
+      runId,
+      'run:completed',
+      expect.any(Object),
+    );
   });
 
   it('should retry a step upon failure and succeed if subsequent attempt passes', async () => {
@@ -124,7 +136,11 @@ describe('ExecutionEngine', () => {
     const tenantId = 'tenant-1';
     const definitionJson = {
       nodes: [
-        { id: 'step1', type: 'http', config: { url: 'http://test', maxRetries: 2, baseDelayMs: 100 } },
+        {
+          id: 'step1',
+          type: 'http',
+          config: { url: 'http://test', maxRetries: 2, baseDelayMs: 100 },
+        },
       ],
       edges: [],
     };
@@ -191,7 +207,11 @@ describe('ExecutionEngine', () => {
     const tenantId = 'tenant-1';
     const definitionJson = {
       nodes: [
-        { id: 'step1', type: 'http', config: { url: 'http://test', maxRetries: 1, baseDelayMs: 100 } },
+        {
+          id: 'step1',
+          type: 'http',
+          config: { url: 'http://test', maxRetries: 1, baseDelayMs: 100 },
+        },
       ],
       edges: [],
     };

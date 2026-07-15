@@ -25,7 +25,9 @@ describe('AuthModule (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api/v1');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
   });
 
@@ -102,8 +104,7 @@ describe('AuthModule (e2e)', () => {
   });
 
   it('should deny access to protected endpoint without token', async () => {
-    const res = await request(app.getHttpServer())
-      .get('/api/v1/admin-only');
+    const res = await request(app.getHttpServer()).get('/api/v1/admin-only');
 
     expect(res.status).toBe(401);
   });

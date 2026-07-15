@@ -27,9 +27,13 @@ export class UpdateWorkflowDto {
     description: 'Updated Directed Acyclic Graph (DAG) JSON definition',
     example: {
       nodes: [
-        { id: 'fetchData', type: 'http', config: { method: 'GET', url: 'https://api.example.com/data' } }
+        {
+          id: 'fetchData',
+          type: 'http',
+          config: { method: 'GET', url: 'https://api.example.com/data' },
+        },
       ],
-      edges: []
+      edges: [],
     },
     required: false,
   })

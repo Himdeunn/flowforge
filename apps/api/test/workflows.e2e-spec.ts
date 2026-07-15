@@ -16,7 +16,7 @@ describe('WorkflowsModule (e2e)', () => {
   const tenantSlug = `tenant-wf-${rand}`;
   const email = `admin-wf-${rand}@example.com`;
   const password = `Password123!`;
-  
+
   let workflowId: string;
   let firstVersionId: string;
   let secondVersionId: string;
@@ -28,18 +28,18 @@ describe('WorkflowsModule (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api/v1');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
 
     // Register & Login to get token
-    await request(app.getHttpServer())
-      .post('/api/v1/auth/register')
-      .send({
-        tenantName: 'WF Test Tenant',
-        tenantSlug,
-        email,
-        password,
-      });
+    await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+      tenantName: 'WF Test Tenant',
+      tenantSlug,
+      email,
+      password,
+    });
 
     const loginRes = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
@@ -64,9 +64,7 @@ describe('WorkflowsModule (e2e)', () => {
         name: 'My Test Workflow',
         description: 'Test Description',
         definitionJson: {
-          nodes: [
-            { id: 'node1', type: 'delay', config: { durationMs: 1000 } },
-          ],
+          nodes: [{ id: 'node1', type: 'delay', config: { durationMs: 1000 } }],
           edges: [],
         },
       });
@@ -90,7 +88,11 @@ describe('WorkflowsModule (e2e)', () => {
         definitionJson: {
           nodes: [
             { id: 'node1', type: 'delay', config: { durationMs: 2000 } },
-            { id: 'node2', type: 'script', config: { script: 'output.result = true;' } },
+            {
+              id: 'node2',
+              type: 'script',
+              config: { script: 'output.result = true;' },
+            },
           ],
           edges: [{ from: 'node1', to: 'node2' }],
         },
@@ -119,7 +121,9 @@ describe('WorkflowsModule (e2e)', () => {
 
   it('should rollback to version 1 and update currentVersionId', async () => {
     const res = await request(app.getHttpServer())
-      .post(`/api/v1/workflows/${workflowId}/versions/${firstVersionId}/rollback`)
+      .post(
+        `/api/v1/workflows/${workflowId}/versions/${firstVersionId}/rollback`,
+      )
       .set('Authorization', `Bearer ${accessToken}`);
 
     expect(res.status).toBe(200);

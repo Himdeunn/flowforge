@@ -11,9 +11,15 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new tenant and admin user' })
-  @ApiResponse({ status: 201, description: 'Tenant and user successfully created' })
+  @ApiResponse({
+    status: 201,
+    description: 'Tenant and user successfully created',
+  })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
-  @ApiResponse({ status: 409, description: 'Tenant slug or email already exists' })
+  @ApiResponse({
+    status: 409,
+    description: 'Tenant slug or email already exists',
+  })
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
@@ -30,7 +36,10 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh JWT access token using refresh token' })
-  @ApiResponse({ status: 200, description: 'New access token successfully generated' })
+  @ApiResponse({
+    status: 200,
+    description: 'New access token successfully generated',
+  })
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
   async refresh(@Body('refreshToken') refreshToken: string) {
     return this.authService.refresh(refreshToken);

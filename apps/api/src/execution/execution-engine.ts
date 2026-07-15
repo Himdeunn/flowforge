@@ -6,7 +6,8 @@ import { RunsGateway } from '../websocket/runs.gateway';
 import { parseAndValidateDag } from './dag-parser';
 import { getExecutionLayers } from './topological-sort';
 
-type StepStatus = 'pending' | 'running' | 'success' | 'failed' | 'skipped' | 'timed_out';
+type StepStatus =
+  'pending' | 'running' | 'success' | 'failed' | 'skipped' | 'timed_out';
 
 @Injectable()
 export class ExecutionEngine {
@@ -142,7 +143,9 @@ export class ExecutionEngine {
       isTimeoutTriggered = true;
       runStatus = 'timed_out';
 
-      this.logger.warn(`Workflow run "${runId}" timed out after ${timeoutMinutes} minutes.`);
+      this.logger.warn(
+        `Workflow run "${runId}" timed out after ${timeoutMinutes} minutes.`,
+      );
 
       try {
         // Mark all non-finished step runs as timed_out
@@ -180,7 +183,9 @@ export class ExecutionEngine {
           completedAt: new Date(),
         });
       } catch (dbErr) {
-        this.logger.error(`Failed to update timeout status in db: ${dbErr.message}`);
+        this.logger.error(
+          `Failed to update timeout status in db: ${dbErr.message}`,
+        );
       }
 
       timeoutReject(new Error('TIMEOUT'));
@@ -204,9 +209,11 @@ export class ExecutionEngine {
             }
 
             const node = parsedDag.nodes.find((n) => n.id === stepId);
-            
+
             // Check dependencies to see if we should skip this step
-            const incomingEdges = parsedDag.edges.filter((e) => e.to === stepId);
+            const incomingEdges = parsedDag.edges.filter(
+              (e) => e.to === stepId,
+            );
             let shouldSkip = false;
 
             for (const edge of incomingEdges) {
@@ -214,7 +221,11 @@ export class ExecutionEngine {
               const parentResult = context.steps[parentId];
 
               // If parent failed or was skipped, the child must be skipped
-              if (!parentResult || parentResult.status === 'failed' || parentResult.status === 'skipped') {
+              if (
+                !parentResult ||
+                parentResult.status === 'failed' ||
+                parentResult.status === 'skipped'
+              ) {
                 shouldSkip = true;
                 break;
               }
@@ -223,11 +234,14 @@ export class ExecutionEngine {
               const parentNode = parsedDag.nodes.find((n) => n.id === parentId);
               if (parentNode.type === 'condition') {
                 const conditionResult = parentResult.output?.result;
-                
+
                 // Determine expected condition value from edge (e.g. edge.condition = false)
                 // Default is true if not specified
-                const expectedValue = edge.conditionValue !== undefined ? edge.conditionValue : true;
-                
+                const expectedValue =
+                  edge.conditionValue !== undefined
+                    ? edge.conditionValue
+                    : true;
+
                 if (conditionResult !== expectedValue) {
                   shouldSkip = true;
                   break;
@@ -260,7 +274,10 @@ export class ExecutionEngine {
               );
               context.steps[stepId] = { status: 'success', output: result };
             } catch (err) {
-              context.steps[stepId] = { status: 'failed', output: { error: err.message } };
+              context.steps[stepId] = {
+                status: 'failed',
+                output: { error: err.message },
+              };
               runStatus = 'failed';
             }
           }),
@@ -269,10 +286,7 @@ export class ExecutionEngine {
     };
 
     try {
-      await Promise.race([
-        runExecution(),
-        timeoutPromise,
-      ]);
+      await Promise.race([runExecution(), timeoutPromise]);
     } catch (err) {
       if (err.message === 'TIMEOUT') {
         return;
@@ -318,13 +332,15 @@ export class ExecutionEngine {
     node: any,
     context: any,
   ): Promise<any> {
-    const maxRetries = node.config?.maxRetries !== undefined ? node.config.maxRetries : 3;
-    const baseDelayMs = node.config?.baseDelayMs !== undefined ? node.config.baseDelayMs : 1000;
+    const maxRetries =
+      node.config?.maxRetries !== undefined ? node.config.maxRetries : 3;
+    const baseDelayMs =
+      node.config?.baseDelayMs !== undefined ? node.config.baseDelayMs : 1000;
 
     let attempt = 0;
     while (true) {
       attempt++;
-      
+
       // Update step status in db
       await this.updateStepRunStatus(runId, node.id, {
         status: 'running',
@@ -398,7 +414,7 @@ export class ExecutionEngine {
             'warn',
             `Retrying step in ${delay}ms...`,
           );
-          
+
           await new Promise((resolve) => setTimeout(resolve, delay));
         } else {
           // Exhausted retries
@@ -430,7 +446,11 @@ export class ExecutionEngine {
     }
   }
 
-  private async updateStepStatus(runId: string, stepKey: string, status: StepStatus): Promise<void> {
+  private async updateStepStatus(
+    runId: string,
+    stepKey: string,
+    status: StepStatus,
+  ): Promise<void> {
     await this.updateStepRunStatus(runId, stepKey, {
       status,
       completedAt: new Date(),

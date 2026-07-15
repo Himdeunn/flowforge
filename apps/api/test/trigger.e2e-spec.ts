@@ -27,18 +27,18 @@ describe('Queue & Trigger Integration (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api/v1');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
 
     // Register & Login
-    await request(app.getHttpServer())
-      .post('/api/v1/auth/register')
-      .send({
-        tenantName: 'Trigger Tenant',
-        tenantSlug,
-        email,
-        password,
-      });
+    await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+      tenantName: 'Trigger Tenant',
+      tenantSlug,
+      email,
+      password,
+    });
 
     const loginRes = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
@@ -58,15 +58,17 @@ describe('Queue & Trigger Integration (e2e)', () => {
         name: 'Trigger Demo WF',
         description: 'Demo',
         definitionJson: {
-          nodes: [
-            { id: 'nodeA', type: 'delay', config: { durationMs: 100 } },
-          ],
+          nodes: [{ id: 'nodeA', type: 'delay', config: { durationMs: 100 } }],
           edges: [],
         },
       });
 
     if (wfRes.status !== 201) {
-      console.error('WORKFLOW CREATION FAILED:', wfRes.status, wfRes.body || wfRes.text);
+      console.error(
+        'WORKFLOW CREATION FAILED:',
+        wfRes.status,
+        wfRes.body || wfRes.text,
+      );
     }
 
     workflowId = wfRes.body.id;
@@ -92,7 +94,7 @@ describe('Queue & Trigger Integration (e2e)', () => {
     // 2. Poll until completed
     let status = 'queued';
     const startTime = Date.now();
-    
+
     while (status === 'queued' || status === 'running') {
       // Prevent infinite test loop
       if (Date.now() - startTime > 10000) {
