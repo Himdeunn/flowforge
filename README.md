@@ -151,10 +151,10 @@ Dashboard: terima event → update node color → re-render
 | **Real-Time** | Socket.IO | 4.x | WebSocket + polling fallback |
 | **Auth** | JWT + Passport | - | Access 15m + Refresh 7d |
 | **Frontend** | React + Vite | 18 / 5 | Fast HMR, React Flow, TanStack Query |
-| **Styling** | Vanilla CSS | - | Custom token system, performa optimal |
+| **Styling** | TailwindCSS + Vanilla CSS | - | Estetika Minimalist Editorial premium, performa optimal |
 | **DAG Visualizer** | React Flow | - | Render graph interaktif |
 | **State/Fetch** | TanStack Query | - | Cache, optimistic update |
-| **AI** | Google Gemini 2.5 Flash | - | Structured output JSON, latensi rendah |
+| **AI** | Google Gemini 3.5 Flash / Fallbacks | - | Generasi JSON DAG tangguh dengan array model cadangan |
 | **API Docs** | Swagger/OpenAPI | - | Auto-generate dari NestJS decorator |
 | **CI/CD** | GitHub Actions | - | Lint → Test → Build → Docker |
 | **Container** | Docker multi-stage | - | Builder + Runner stage |
@@ -203,9 +203,11 @@ flowforge/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                    # CI Pipeline
+├── audits/                           # Laporan audit berkala perbaikan sistem
 ├── docs/
 │   └── infra-design.md               # Desain infrastruktur AWS
 ├── docker-compose.yml                # Full stack (6 services)
+├── FlowForge_Final_Report.md         # Laporan akhir komprehensif assessment
 ├── REVIEW.md                         # Code review assessment
 ├── CHANGELOG-DECISIONS.md            # Log keputusan implementasi
 ├── 01-PRD-FlowForge.md               # Product Requirements Document
@@ -992,7 +994,7 @@ socket.on('step:status_changed', (data) => {
 | **Rate Limiting** | Manual Redis sliding window | Full kontrol per-tenant, tapi lebih banyak kode | Pertimbangkan `@nestjs/throttler` dengan custom storage adapter |
 | **Worker Process** | In-process di development | Mudah deploy, tapi tidak bisa scale worker terpisah | Di production: container `worker` terpisah (sudah ada di docker-compose) |
 | **Cron Scheduling** | Disimpan sebagai `cron_expression` di DB | Cron hanya trigger jika API/worker berjalan | Pertimbangkan BullMQ repeatable jobs atau dedicated scheduler |
-| **Frontend Styling** | Vanilla CSS custom tokens | Performa optimal, tidak perlu build step Tailwind | Dapat dimigrasi ke Tailwind dengan mengganti class utility |
+| **Frontend Styling** | TailwindCSS + Vanilla CSS | Sangat fleksibel, build step terintegrasi di Vite | Selesai (Diimplementasikan estetika Minimalist Editorial premium) |
 
 ---
 
@@ -1013,7 +1015,7 @@ Setiap keputusan yang menyimpang dari PRD atau menambahkan detail implementasi y
 | Task 2.4 | BullMQ via host/port config | Menghindari TypeScript conflict dua versi ioredis |
 | Task 2.5 | Prisma Proxy (bukan middleware) | Lebih transparan, tidak perlu register per-model |
 | Task 2.6 | Redis sliding window manual | `@nestjs/throttler` tidak support custom key per-tenant |
-| Task 3.2 | Vanilla CSS (bukan Tailwind) | Custom token lebih cepat untuk assessment, tidak ada trade-off fungsional |
+| Task 3.2 | TailwindCSS + Vanilla CSS | Awalnya menggunakan Vanilla CSS, namun kemudian dimigrasi ke TailwindCSS + Shadcn-inspired Minimalist Editorial untuk visual premium tingkat lanjut |
 | Task 3.6 | CI NODE_VERSION dari 20 ke 22 | npm v11 (Node 22) menghasilkan lockfile format berbeda dengan npm v10 (Node 20) |
 
 Lihat [`CHANGELOG-DECISIONS.md`](./CHANGELOG-DECISIONS.md) untuk detail penuh setiap keputusan.
