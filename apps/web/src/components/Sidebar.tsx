@@ -9,15 +9,15 @@ export default function Sidebar({ currentPage, onNavigate }: Props) {
   const { user, logout } = useAuth();
 
   const navItems = [
-    { id: 'dashboard', label: '📊 Dashboard', icon: '' },
-    { id: 'workflows', label: '⚡ Workflows', icon: '' },
-    { id: 'runs', label: '🔄 Run History', icon: '' },
-    { id: 'ai-builder', label: '🤖 AI Builder', icon: '' },
+    { id: 'dashboard', label: 'Dashboard', icon: '' },
+    { id: 'workflows', label: 'Workflows', icon: '' },
+    { id: 'runs', label: 'Run History', icon: '' },
+    { id: 'ai-builder', label: 'Workflow Generator', icon: '' },
   ];
 
   return (
     <nav className="sidebar">
-      <div className="sidebar-logo">⚡ FlowForge</div>
+      <div className="sidebar-logo">FlowForge</div>
 
       {navItems.map((item) => (
         <button
@@ -47,7 +47,7 @@ export default function Sidebar({ currentPage, onNavigate }: Props) {
           onClick={logout}
           style={{ color: 'var(--color-danger)' }}
         >
-          🚪 Sign Out
+          Sign Out
         </button>
       </div>
     </nav>

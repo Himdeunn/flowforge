@@ -52,9 +52,9 @@ export default function AIBuilderPage() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">🤖 AI Workflow Builder</h1>
+        <h1 className="page-title">Workflow Generator</h1>
         <p className="page-subtitle">
-          Describe a workflow in natural language — powered by Google Gemini
+          Design workflows using declarative language instructions
         </p>
       </div>
 
@@ -68,7 +68,7 @@ export default function AIBuilderPage() {
           fontSize: 14,
           marginBottom: 16,
         }}>
-          ✅ Workflow saved successfully! Go to Workflows to trigger it.
+          Workflow saved successfully. Navigate to Workflows page to trigger it.
         </div>
       )}
 
@@ -103,7 +103,7 @@ export default function AIBuilderPage() {
               {generateMutation.isPending ? (
                 <><span className="spinner" /> Generating...</>
               ) : (
-                '✨ Generate DAG'
+                'Generate DAG'
               )}
             </button>
 

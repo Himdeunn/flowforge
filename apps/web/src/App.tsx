@@ -17,12 +17,45 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
-  const [page, setPage] = useState('dashboard');
+  const [page, setPage] = useState(() => {
+    const path = window.location.pathname;
+    if (path === '/workflows') return 'workflows';
+    if (path === '/history') return 'runs';
+    if (path === '/ai-builder') return 'ai-builder';
+    return 'dashboard';
+  });
+
+  // Sync state when browser navigation happens (back/forward)
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path === '/workflows') setPage('workflows');
+      else if (path === '/history') setPage('runs');
+      else if (path === '/ai-builder') setPage('ai-builder');
+      else setPage('dashboard');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Navigate function to change page state and push history path
+  const navigateTo = (newPage: string) => {
+    setPage(newPage);
+    let path = '/';
+    if (newPage === 'workflows') path = '/workflows';
+    else if (newPage === 'runs') path = '/history';
+    else if (newPage === 'ai-builder') path = '/ai-builder';
+
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+    }
+  };
 
   // Fix: Redirect to root / if user is authenticated but path says /login
   useEffect(() => {
     if (isAuthenticated && (window.location.pathname === '/login' || window.location.pathname.endsWith('/login'))) {
       window.history.pushState({}, '', '/');
+      setPage('dashboard');
     }
   }, [isAuthenticated]);
 
@@ -40,7 +73,7 @@ function AppContent() {
 
   return (
     <div className="app-layout">
-      <Sidebar currentPage={page} onNavigate={setPage} />
+      <Sidebar currentPage={page} onNavigate={navigateTo} />
       <main className="main-content">
         {renderPage()}
       </main>
