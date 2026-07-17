@@ -22,10 +22,32 @@ export default function WorkflowsPage() {
   const [dagError, setDagError] = useState('');
   const [triggeringId, setTriggeringId] = useState<string | null>(null);
 
+  // Edit states
+  const [showEdit, setShowEdit] = useState(false);
+  const [editingWorkflowId, setEditingWorkflowId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editDag, setEditDag] = useState('');
+  const [editCron, setEditCron] = useState('');
+  const [editDagError, setEditDagError] = useState('');
+
+  // Version states
+  const [showVersions, setShowVersions] = useState(false);
+  const [versionsWorkflowId, setVersionsWorkflowId] = useState<string | null>(null);
+
   const { data, isLoading } = useQuery({
     queryKey: ['workflows'],
     queryFn: () => workflowsApi.list({ limit: 20 }),
     refetchInterval: 15_000,
+  });
+
+  const { data: versionsData, refetch: refetchVersions, isLoading: isLoadingVersions } = useQuery({
+    queryKey: ['workflow-versions', versionsWorkflowId],
+    queryFn: () => {
+      if (!versionsWorkflowId) return Promise.resolve([]);
+      return workflowsApi.getVersions(versionsWorkflowId);
+    },
+    enabled: !!versionsWorkflowId,
   });
 
   const createMutation = useMutation({
@@ -37,9 +59,33 @@ export default function WorkflowsPage() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: any }) => workflowsApi.update(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      setShowEdit(false);
+      setEditingWorkflowId(null);
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => workflowsApi.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workflows'] }),
+  });
+
+  const rollbackMutation = useMutation({
+    mutationFn: ({ workflowId, versionId }: { workflowId: string; versionId: string }) =>
+      workflowsApi.rollback(workflowId, versionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      if (versionsWorkflowId) {
+        refetchVersions();
+      }
+      alert('Rollback successful!');
+    },
+    onError: (err: any) => {
+      alert(`Rollback failed: ${err.message || 'Unknown error'}`);
+    }
   });
 
   const handleCreate = (e: React.FormEvent) => {
@@ -58,6 +104,29 @@ export default function WorkflowsPage() {
       definitionJson: parsed,
       cronExpression: newCron || undefined,
     });
+  };
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditDagError('');
+    let parsed: any;
+    try {
+      parsed = JSON.parse(editDag);
+    } catch {
+      setEditDagError('Invalid JSON — please check DAG definition.');
+      return;
+    }
+    if (editingWorkflowId) {
+      updateMutation.mutate({
+        id: editingWorkflowId,
+        payload: {
+          name: editName,
+          description: editDesc,
+          definitionJson: parsed,
+          cronExpression: editCron || undefined,
+        },
+      });
+    }
   };
 
   const handleTrigger = async (id: string) => {
@@ -140,6 +209,34 @@ export default function WorkflowsPage() {
                     disabled={triggeringId === wf.id}
                   >
                     {triggeringId === wf.id ? <span className="spinner" style={{ width: 14, height: 14 }} /> : '▶ Trigger'}
+                  </button>
+                )}
+                {canEdit && (
+                  <button
+                    id={`btn-edit-${wf.id}`}
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => {
+                      setEditingWorkflowId(wf.id);
+                      setEditName(wf.name);
+                      setEditDesc(wf.description || '');
+                      setEditDag(JSON.stringify(wf.currentVersion?.definitionJson || DEFAULT_DAG, null, 2));
+                      setEditCron(wf.cronExpression || '');
+                      setShowEdit(true);
+                    }}
+                  >
+                    Edit
+                  </button>
+                )}
+                {canEdit && (
+                  <button
+                    id={`btn-versions-${wf.id}`}
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => {
+                      setVersionsWorkflowId(wf.id);
+                      setShowVersions(true);
+                    }}
+                  >
+                    Versions
                   </button>
                 )}
                 {user?.role === 'admin' && (
@@ -261,6 +358,88 @@ export default function WorkflowsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEdit && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowEdit(false)}>
+          <div className="modal" style={{ maxWidth: 640 }}>
+            <h2 className="modal-title">Edit Workflow</h2>
+            <form onSubmit={handleUpdate} id="edit-workflow-form">
+              <div className="form-group">
+                <label className="form-label">Name *</label>
+                <input id="edit-wf-name" className="form-input" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="My Workflow" required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Description</label>
+                <input id="edit-wf-desc" className="form-input" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} placeholder="Optional description" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Cron Expression (optional)</label>
+                <input id="edit-wf-cron" className="form-input" value={editCron} onChange={(e) => setEditCron(e.target.value)} placeholder="*/5 * * * *" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">DAG Definition (JSON) *</label>
+                <textarea
+                  id="edit-wf-dag"
+                  className="form-textarea"
+                  style={{ fontFamily: 'monospace', fontSize: 12, minHeight: 160 }}
+                  value={editDag}
+                  onChange={(e) => setEditDag(e.target.value)}
+                  required
+                />
+                {editDagError && <p style={{ color: 'var(--color-danger)', fontSize: 12, marginTop: 4 }}>{editDagError}</p>}
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowEdit(false)}>Cancel</button>
+                <button id="edit-workflow-submit" type="submit" className="btn btn-primary" disabled={updateMutation.isPending}>
+                  {updateMutation.isPending ? <span className="spinner" /> : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Versions Modal */}
+      {showVersions && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowVersions(false)}>
+          <div className="modal" style={{ maxWidth: 600 }}>
+            <h2 className="modal-title">Version History</h2>
+            {isLoadingVersions ? (
+              <div style={{ textAlign: 'center', padding: '24px' }}><span className="spinner" /></div>
+            ) : !versionsData || versionsData.length === 0 ? (
+              <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>No versions found.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 300, overflowY: 'auto', paddingRight: 4 }}>
+                {versionsData.map((v: any) => (
+                  <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', border: '1px solid var(--color-border)', background: 'var(--color-bg)' }}>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>Version #{v.versionNumber}</p>
+                      <p style={{ margin: '2px 0 0', fontSize: 11, color: 'var(--color-text-muted)' }}>
+                        Created at {new Date(v.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => {
+                        if (confirm(`Rollback to Version #${v.versionNumber}?`)) {
+                          rollbackMutation.mutate({ workflowId: versionsWorkflowId!, versionId: v.id });
+                        }
+                      }}
+                      disabled={rollbackMutation.isPending}
+                    >
+                      Rollback
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="modal-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setShowVersions(false)}>Close</button>
+            </div>
           </div>
         </div>
       )}
