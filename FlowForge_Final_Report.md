@@ -239,6 +239,7 @@ Berikut adalah catatan riwayat commit git di dalam repositori proyek FlowForge y
 
 | Commit Hash | Judul Commit | Penjelasan Rinci Perubahan Teknis |
 | :--- | :--- | :--- |
+| `8559599` | `feat(web,api): add tenant users CRUD management page and backend module` | Menambahkan endpoint API users untuk data tenant terisolasi, serta halaman pemantauan dan pengelolaan CRUD anggota organisasi (Admin, Editor, Viewer). |
 | `e97475f` | `fix(web): add Edit and Version History modals to WorkflowsPage for complete CRUD and Rollback capability` | Menambahkan tombol Edit dan Versions di antarmuka Workflows frontend, serta modal visual penampil versi dan pengeksekusi rollback. |
 | `4ab1f69` | `docs: update README to reflect TailwindCSS migration and Gemini 3.5 fallbacks` | Memperbarui status Tech Stack, diagram struktur folder, dan tabel keputusan implementasi pada berkas README.md. |
 | `f5f60e6` | `docs: expand final report with highly comprehensive sections and sub-section 6.5 detailing commit history` | Mengembangkan detail Laporan Akhir Proyek dan menambahkan tabel riwayat commit GitHub pada bab 6.5. |
@@ -282,3 +283,4 @@ FlowForge telah berhasil dibangun sebagai sistem orkestrasi alur kerja multi-ten
     -   `audits/Audit_00-43_16-07-2026_fix(prompt-reachable-mock-urls-for-ai-builder).md`
     -   `audits/Audit_12-25_16-07-2026_feat(minimalist-editorial-ui-and-clean-routing-with-final-report).md`
     -   `audits/Audit_17-47_17-07-2026_fix(add-workflows-edit-and-version-history-ui-modals).md`
+    -   `audits/Audit_20-52_17-07-2026_feat(add-users-management-crud-monitoring-page).md`
