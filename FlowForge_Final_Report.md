@@ -239,6 +239,9 @@ Berikut adalah catatan riwayat commit git di dalam repositori proyek FlowForge y
 
 | Commit Hash | Judul Commit | Penjelasan Rinci Perubahan Teknis |
 | :--- | :--- | :--- |
+| `e97475f` | `fix(web): add Edit and Version History modals to WorkflowsPage for complete CRUD and Rollback capability` | Menambahkan tombol Edit dan Versions di antarmuka Workflows frontend, serta modal visual penampil versi dan pengeksekusi rollback. |
+| `4ab1f69` | `docs: update README to reflect TailwindCSS migration and Gemini 3.5 fallbacks` | Memperbarui status Tech Stack, diagram struktur folder, dan tabel keputusan implementasi pada berkas README.md. |
+| `f5f60e6` | `docs: expand final report with highly comprehensive sections and sub-section 6.5 detailing commit history` | Mengembangkan detail Laporan Akhir Proyek dan menambahkan tabel riwayat commit GitHub pada bab 6.5. |
 | `f9b55f5` | `feat: overhaul UI to minimalist editorial, add browser URL routing, and generate final report` | Mengubah font pairing ke Plus Jakarta Sans & Inter, menipiskan garis elemen visual, menyinkronkan URL path browser menggunakan HTML5 History API, serta menyusun berkas laporan akhir. |
 | `ae8bcb6` | `fix(ai): update few-shot examples in system prompt to use reachable target URLs` | Mengganti alamat domain palsu (`http://api.com`) pada system prompt Gemini menjadi target API publik aktif (`httpbin.org`, `jsonplaceholder.typicode.com`) agar hasil generate alur kerja sukses dieksekusi. |
 | `e6bfdf3` | `fix(ai): strip markdown wrappers and extract JSON blocks from Gemini responses robustly` | Menambahkan pembersih string `cleanJsonText` pada backend untuk memotong blok markdown kode ` ```json ` agar proses parsing JSON berjalan 100% andal. |
@@ -278,3 +281,4 @@ FlowForge telah berhasil dibangun sebagai sistem orkestrasi alur kerja multi-ten
     -   `audits/Audit_22-42_15-07-2026_fix(robust-gemini-json-response-cleaning).md`
     -   `audits/Audit_00-43_16-07-2026_fix(prompt-reachable-mock-urls-for-ai-builder).md`
     -   `audits/Audit_12-25_16-07-2026_feat(minimalist-editorial-ui-and-clean-routing-with-final-report).md`
+    -   `audits/Audit_17-47_17-07-2026_fix(add-workflows-edit-and-version-history-ui-modals).md`
