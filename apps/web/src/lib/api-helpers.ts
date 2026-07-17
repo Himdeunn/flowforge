@@ -64,3 +64,11 @@ export const aiApi = {
   generateWorkflow: (prompt: string, currentDefinition?: any) =>
     apiClient.post('/ai/generate-workflow', { prompt, currentDefinition }).then((r) => r.data),
 };
+
+// Users
+export const usersApi = {
+  list: () => apiClient.get('/users').then((r) => r.data),
+  create: (data: any) => apiClient.post('/users', data).then((r) => r.data),
+  update: (id: string, data: any) => apiClient.put(`/users/${id}`, data).then((r) => r.data),
+  delete: (id: string) => apiClient.delete(`/users/${id}`).then((r) => r.data),
+};

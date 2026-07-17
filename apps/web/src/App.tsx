@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import WorkflowsPage from './pages/WorkflowsPage';
 import RunsPage from './pages/RunsPage';
 import AIBuilderPage from './pages/AIBuilderPage';
+import UsersPage from './pages/UsersPage';
 import Sidebar from './components/Sidebar';
 import './index.css';
 
@@ -22,6 +23,7 @@ function AppContent() {
     if (path === '/workflows') return 'workflows';
     if (path === '/history') return 'runs';
     if (path === '/ai-builder') return 'ai-builder';
+    if (path === '/users') return 'users';
     return 'dashboard';
   });
 
@@ -32,6 +34,7 @@ function AppContent() {
       if (path === '/workflows') setPage('workflows');
       else if (path === '/history') setPage('runs');
       else if (path === '/ai-builder') setPage('ai-builder');
+      else if (path === '/users') setPage('users');
       else setPage('dashboard');
     };
     window.addEventListener('popstate', handlePopState);
@@ -45,6 +48,7 @@ function AppContent() {
     if (newPage === 'workflows') path = '/workflows';
     else if (newPage === 'runs') path = '/history';
     else if (newPage === 'ai-builder') path = '/ai-builder';
+    else if (newPage === 'users') path = '/users';
 
     if (window.location.pathname !== path) {
       window.history.pushState({}, '', path);
@@ -67,6 +71,7 @@ function AppContent() {
       case 'workflows': return <WorkflowsPage />;
       case 'runs': return <RunsPage />;
       case 'ai-builder': return <AIBuilderPage />;
+      case 'users': return <UsersPage />;
       default: return <DashboardPage />;
     }
   };

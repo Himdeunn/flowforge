@@ -15,6 +15,10 @@ export default function Sidebar({ currentPage, onNavigate }: Props) {
     { id: 'ai-builder', label: 'Workflow Generator', icon: '' },
   ];
 
+  if (user?.role === 'admin') {
+    navItems.push({ id: 'users', label: 'Users', icon: '' });
+  }
+
   return (
     <nav className="sidebar">
       <div className="sidebar-logo">FlowForge</div>
